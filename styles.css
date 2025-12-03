@@ -16,6 +16,31 @@
     --border-color: #2a2a2a;
 }
 
+/* Terminal Theme Styles */
+body[data-theme="amber"] {
+    --neon-green: #ffb000;
+    --dark-bg: #1a1a0a;
+    --terminal-bg: #1a1a0a;
+}
+
+body[data-theme="monochrome"] {
+    --neon-green: #cccccc;
+    --neon-pink: #999999;
+    --neon-cyan: #aaaaaa;
+    --dark-bg: #0f0f0f;
+    --terminal-bg: #0f0f0f;
+    --text-color: #cccccc;
+}
+
+body[data-theme="dos"] {
+    --neon-green: #00ff00;
+    --neon-pink: #00ff00;
+    --neon-cyan: #00ff00;
+    --dark-bg: #0000aa;
+    --terminal-bg: #0000aa;
+    --text-color: #00ff00;
+}
+
 body {
     font-family: 'VT323', monospace;
     background: var(--darker-bg);
@@ -92,6 +117,7 @@ body {
     flex-direction: column;
     position: relative;
     z-index: 1;
+    padding-bottom: 40px;
 }
 
 .terminal-header {
@@ -187,6 +213,42 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 100;
+}
+
+/* Taskbar for minimized windows */
+.taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: var(--window-bg);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px;
+    z-index: 99;
+    overflow-x: auto;
+    pointer-events: all;
+}
+
+.taskbar-btn {
+    padding: 6px 12px;
+    background: var(--terminal-bg);
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.taskbar-btn:hover {
+    background: var(--neon-green);
+    color: var(--darker-bg);
+    box-shadow: 0 0 10px var(--neon-green);
 }
 
 .retro-window {

@@ -10,6 +10,11 @@ class RetroTerminal {
         this.currentWindow = null;
         this.commandHistory = [];
         this.historyIndex = -1;
+        this.colorScheme = 'neon-green'; // Current color scheme
+        this.terminalTheme = 'default'; // Current terminal theme
+        this.typingSpeed = 30; // ms per character for typing animation
+        this.minimizedWindows = []; // Track minimized windows
+        this.allCommands = ['help', 'about', 'projects', 'skills', 'contact', 'quote', 'surprise', 'neo', 'color', 'theme', 'clear', 'exit', 'quit'];
         
         this.init();
     }
@@ -75,7 +80,23 @@ class RetroTerminal {
             this.navigateHistory(1);
         } else if (e.key === 'Tab') {
             e.preventDefault();
-            // Tab completion could be added here
+            this.autocompleteCommand();
+        }
+    }
+
+    autocompleteCommand() {
+        const input = this.terminalInput.value.trim().toLowerCase();
+        if (!input) return;
+
+        // Find matching commands
+        const matches = this.allCommands.filter(cmd => cmd.startsWith(input));
+        
+        if (matches.length === 1) {
+            // Single match: autocomplete
+            this.terminalInput.value = matches[0];
+        } else if (matches.length > 1) {
+            // Multiple matches: show suggestions
+            this.addOutputLine(`Suggestions: ${matches.join(', ')}`, 'info-text');
         }
     }
 
@@ -150,6 +171,20 @@ class RetroTerminal {
             case 'neo':
                 this.startneo();
                 break;
+            case 'theme':
+                if (args.length > 0) {
+                    this.switchTheme(args[0]);
+                } else {
+                    this.showThemeOptions();
+                }
+                break;
+            case 'color':
+                if (args.length > 0) {
+                    this.switchColorScheme(args[0]);
+                } else {
+                    this.showColorOptions();
+                }
+                break;
             case 'clear':
                 this.clearTerminal();
                 break;
@@ -165,8 +200,19 @@ class RetroTerminal {
     addOutputLine(text, className = '') {
         const line = document.createElement('div');
         line.className = `terminal-line ${className}`;
-        line.innerHTML = text;
         this.terminalOutput.appendChild(line);
+        
+        // Type out the text character by character
+        let charIndex = 0;
+        const typeCharacter = () => {
+            if (charIndex < text.length) {
+                line.innerHTML += text[charIndex];
+                charIndex++;
+                setTimeout(typeCharacter, this.typingSpeed);
+            }
+        };
+        
+        typeCharacter();
         this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight;
     }
 
@@ -180,6 +226,8 @@ class RetroTerminal {
             { name: 'quote', desc: 'wisdom' },
             { name: 'surprise', desc: 'dont use this one' },
             { name: 'neo', desc: 'what movie is that from??' },
+            { name: 'color [scheme]', desc: 'switch color scheme' },
+            { name: 'theme [name]', desc: 'switch terminal theme' },
             { name: 'clear', desc: 'clear terminal' }
         ];
 
@@ -396,6 +444,70 @@ class RetroTerminal {
         if (neoContainer) {
             neoContainer.remove();
         }
+    }
+
+    switchColorScheme(scheme) {
+        const schemes = {
+            'green': { primary: '#00ff88', secondary: '#ff6b9d', accent: '#4dd0e1' },
+            'purple': { primary: '#b366ff', secondary: '#ff1493', accent: '#00ffff' },
+            'blue': { primary: '#00ccff', secondary: '#ff00ff', accent: '#ffff00' },
+            'orange': { primary: '#ff8800', secondary: '#00ffff', accent: '#ffff00' },
+            'pink': { primary: '#ff1493', secondary: '#00ff88', accent: '#ffff00' }
+        };
+
+        if (!schemes[scheme]) {
+            this.addOutputLine(`Unknown color scheme: ${scheme}. Available: green, purple, blue, orange, pink`, 'error-text');
+            return;
+        }
+
+        this.colorScheme = scheme;
+        const colors = schemes[scheme];
+        const root = document.documentElement;
+        root.style.setProperty('--neon-green', colors.primary);
+        root.style.setProperty('--neon-pink', colors.secondary);
+        root.style.setProperty('--neon-cyan', colors.accent);
+        
+        this.addOutputLine(`Color scheme changed to "${scheme}"`, 'success-text');
+    }
+
+    showColorOptions() {
+        this.addOutputLine('Usage: color [scheme]', 'info-text');
+        this.addOutputLine('Available schemes: green, purple, blue, orange, pink', 'info-text');
+    }
+
+    switchTheme(theme) {
+        const themes = {
+            'default': { bg: '#0a0a0a', text: '#00ff88' },
+            'amber': { bg: '#1a1a0a', text: '#ffb000' },
+            'monochrome': { bg: '#0f0f0f', text: '#cccccc' },
+            'dos': { bg: '#0000aa', text: '#00ff00' }
+        };
+
+        if (!themes[theme]) {
+            this.addOutputLine(`Unknown theme: ${theme}. Available: default, amber, monochrome, dos`, 'error-text');
+            return;
+        }
+
+        this.terminalTheme = theme;
+        const themeColors = themes[theme];
+        const container = document.getElementById('terminalContainer');
+        
+        if (container) {
+            container.style.backgroundColor = themeColors.bg;
+            container.style.color = themeColors.text;
+            document.querySelectorAll('.terminal-line').forEach(line => {
+                if (!line.classList.contains('error-text')) {
+                    line.style.color = themeColors.text;
+                }
+            });
+        }
+        
+        this.addOutputLine(`Terminal theme changed to "${theme}"`, 'success-text');
+    }
+
+    showThemeOptions() {
+        this.addOutputLine('Usage: theme [name]', 'info-text');
+        this.addOutputLine('Available themes: default, amber, monochrome, dos', 'info-text');
     }
 
     createWindow(title, contentGenerator, onMount = null, options = {}) {
@@ -651,11 +763,50 @@ class RetroTerminal {
 
     minimizeWindow(window) {
         const content = window.querySelector('.window-content');
+        const title = window.querySelector('.window-title').textContent;
+        
         if (content.style.display === 'none') {
+            // Restore window
             content.style.display = 'block';
+            window.style.display = 'block';
+            this.removeFromTaskbar(window.id);
         } else {
+            // Minimize window
             content.style.display = 'none';
+            this.addToTaskbar(window.id, title);
         }
+    }
+
+    addToTaskbar(windowId, title) {
+        const taskbar = document.getElementById('taskbar');
+        if (!taskbar) return;
+
+        // Check if already in taskbar
+        if (document.getElementById(`taskbar-btn-${windowId}`)) return;
+
+        const btn = document.createElement('button');
+        btn.id = `taskbar-btn-${windowId}`;
+        btn.className = 'taskbar-btn';
+        btn.textContent = title;
+        btn.addEventListener('click', () => {
+            const window = document.getElementById(windowId);
+            if (window) {
+                const content = window.querySelector('.window-content');
+                content.style.display = 'block';
+                window.style.display = 'block';
+                this.focusWindow(window);
+                this.removeFromTaskbar(windowId);
+            }
+        });
+
+        taskbar.appendChild(btn);
+        this.minimizedWindows.push(windowId);
+    }
+
+    removeFromTaskbar(windowId) {
+        const btn = document.getElementById(`taskbar-btn-${windowId}`);
+        if (btn) btn.remove();
+        this.minimizedWindows = this.minimizedWindows.filter(id => id !== windowId);
     }
 
     maximizeWindow(window) {

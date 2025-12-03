@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 </head>
-<body>
+<body data-theme="default">
     <div class="crt-screen">
         <div class="scanlines"></div>
         <div class="screen-glow"></div>
@@ -52,6 +52,9 @@ ____/\\\\\\\\\__________________________/\\\\_________________________/\\\\\\\\\
 
         <!-- Window Container -->
         <div class="windows-container" id="windowsContainer"></div>
+
+        <!-- Taskbar for minimized windows -->
+        <div class="taskbar" id="taskbar"></div>
 
         <!-- In-page modal: ask about ASCII art -->
         <div id="asciiModal" class="modal" aria-hidden="true">
