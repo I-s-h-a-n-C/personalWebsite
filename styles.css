@@ -201,10 +201,13 @@ body {
 }
 
 .cursor {
-    color: var(--neon-green);
-    animation: blink 1s infinite;
-    margin-left: 2px;
-    font-weight: bold;
+    position: absolute;
+    width: 10px;
+    background: var(--neon-green);
+    animation: blink 1s steps(1) infinite;
+    border-radius: 1px;
+    pointer-events: none;
+    /* will be positioned by JS */
 }
 
 @keyframes blink {

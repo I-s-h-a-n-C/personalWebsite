@@ -22,6 +22,13 @@ class RetroTerminal {
     init() {
         this.terminalInput.addEventListener('keydown', (e) => this.handleKeyPress(e));
         this.terminalInput.addEventListener('input', () => this.updateCursor());
+        this.terminalInput.addEventListener('click', () => this.updateCursor());
+        this.terminalInput.addEventListener('keyup', () => this.updateCursor());
+        this.terminalInput.addEventListener('focus', () => this.updateCursor());
+        this.terminalInput.addEventListener('blur', () => {
+            const cursorEl = document.getElementById('cursor');
+            if (cursorEl) cursorEl.style.opacity = '0';
+        });
         
         // Focus terminal input when clicking on terminal
         document.getElementById('terminalContainer').addEventListener('click', () => {
@@ -66,6 +73,8 @@ class RetroTerminal {
             }
         }, true);
 
+        // Position cursor initially
+        setTimeout(() => this.updateCursor(), 0);
     }
 
     handleKeyPress(e) {
@@ -117,7 +126,50 @@ class RetroTerminal {
     }
 
     updateCursor() {
-        // Cursor is handled by CSS animation
+        // Position a block cursor to match the caret location inside the input
+        try {
+            const input = this.terminalInput;
+            const cursorEl = document.getElementById('cursor');
+            const lineContainer = input.parentElement; // .terminal-input-line
+            if (!cursorEl || !lineContainer) return;
+
+            // Ensure mirror element exists for measuring text width
+            if (!this._caretMirror) {
+                this._caretMirror = document.createElement('span');
+                this._caretMirror.style.position = 'absolute';
+                this._caretMirror.style.visibility = 'hidden';
+                this._caretMirror.style.whiteSpace = 'pre';
+                // match input font
+                const cs = window.getComputedStyle(input);
+                this._caretMirror.style.fontFamily = cs.fontFamily;
+                this._caretMirror.style.fontSize = cs.fontSize;
+                this._caretMirror.style.letterSpacing = cs.letterSpacing;
+                lineContainer.appendChild(this._caretMirror);
+            }
+
+            const selStart = (typeof input.selectionStart === 'number') ? input.selectionStart : input.value.length;
+            const before = input.value.slice(0, selStart) || '';
+            this._caretMirror.textContent = before;
+
+            const mirrorWidth = this._caretMirror.offsetWidth;
+            // Compute left position relative to the line container using input's offset
+            const inputLeft = input.offsetLeft || 0;
+            const left = inputLeft + mirrorWidth + 4; // small gap
+
+            // vertical center the cursor to the input
+            const inputRect = input.getBoundingClientRect();
+            const parentRect = lineContainer.getBoundingClientRect();
+            const top = input.offsetTop; // relative to container
+
+            cursorEl.style.left = `${left}px`;
+            cursorEl.style.top = `${top + 2}px`;
+            cursorEl.style.height = `${input.offsetHeight - 4}px`;
+            cursorEl.style.zIndex = '5';
+            cursorEl.style.opacity = '1';
+            cursorEl.style.display = 'block';
+        } catch (err) {
+            // fail silently
+        }
     }
 
     processCommand() {
