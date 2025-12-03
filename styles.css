@@ -58,6 +58,30 @@ body {
     position: relative;
     background: var(--dark-bg);
     overflow: hidden;
+    perspective: 1000px;
+}
+
+.crt-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* CRT Curvature Effect */
+.terminal-container {
+    transform: perspective(1500px) rotateX(0.5deg) rotateY(-0.5deg);
+    border-radius: 40px;
+    position: relative;
+}
+
+.screen-glow {
+    box-shadow: inset -2px -2px 30px rgba(0, 0, 0, 0.5), inset 2px 2px 30px rgba(0, 255, 136, 0.05);
 }
 
 .scanlines {

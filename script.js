@@ -589,8 +589,8 @@ class RetroTerminal {
         const userWindowCount = this.windows.filter(w => !w.classList.contains('transient-warning')).length;
 
         if (userWindowCount > 2 && !existing) {
-            const warningWindow = this.createWindow('Notice', () => {
-                return `<div class="warning-content">Are you gonna close these?</div>`;
+            const warningWindow = this.createWindow('Are you gonna close some of those?', () => {
+                return `<div class="warning-content">It doesn;t really matter or anything but still</div>`;
             }, null, { skipAutoWarning: true });
 
             // Mark as transient so it won't trigger more warnings
