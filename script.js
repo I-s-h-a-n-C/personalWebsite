@@ -590,7 +590,7 @@ class RetroTerminal {
 
         if (userWindowCount > 2 && !existing) {
             const warningWindow = this.createWindow('Are you gonna close some of those?', () => {
-                return `<div class="warning-content">It doesn;t really matter or anything but still</div>`;
+                return `<div class="warning-content">It doesn't really matter or anything but still</div>`;
             }, null, { skipAutoWarning: true });
 
             // Mark as transient so it won't trigger more warnings
@@ -610,7 +610,7 @@ class RetroTerminal {
             // Auto-dismiss after 3 seconds
             setTimeout(() => {
                 this.closeWindow(warningWindow);
-            }, 3000);
+            }, 5000);
         }
     }
 
