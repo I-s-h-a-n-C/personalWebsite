@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riv's Portfolio Terminal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="crt-screen">
+        <div class="scanlines"></div>
+        <div class="screen-glow"></div>
+        
+        <div class="datetime-display" id="datetimeDisplay"></div>
+        
+        <div class="terminal-container" id="terminalContainer">
+            <div class="terminal-header">
+                <span class="terminal-title">Riv's Portfolio</span>
+            </div>
+            <div class="terminal-body" id="terminalBody">
+                <div class="terminal-output" id="terminalOutput">
+                    <div class="terminal-line ascii-art">
+____/\\\\\\\\\__________________________/\\\\_________________________/\\\\\\\\\\\\\____________________________________________________/\\\\\________________/\\\\\\________________________        
+ __/\\\///////\\\_______________________\///\\________________________\/\\\/////////\\\________________________________________________/\\\///________________\////\\\________________________       
+  _\/\\\_____\/\\\____/\\\________________/\\/_________________________\/\\\_______\/\\\_________________________________/\\\__________/\\\_______________________\/\\\_____/\\\_______________      
+   _\/\\\\\\\\\\\/____\///___/\\\____/\\\_\//_____/\\\\\\\\\\___________\/\\\\\\\\\\\\\/______/\\\\\_____/\\/\\\\\\\___/\\\\\\\\\\\__/\\\\\\\\\_______/\\\\\_______\/\\\____\///______/\\\\\____     
+    _\/\\\//////\\\_____/\\\_\//\\\__/\\\_________\/\\\//////____________\/\\\/////////______/\\\///\\\__\/\\\/////\\\_\////\\\////__\////\\\//______/\\\///\\\_____\/\\\_____/\\\___/\\\///\\\__    
+     _\/\\\____\//\\\___\/\\\__\//\\\/\\\__________\/\\\\\\\\\\___________\/\\\______________/\\\__\//\\\_\/\\\___\///_____\/\\\_________\/\\\_______/\\\__\//\\\____\/\\\____\/\\\__/\\\__\//\\\_   
+      _\/\\\_____\//\\\__\/\\\___\//\\\\\___________\////////\\\___________\/\\\_____________\//\\\__/\\\__\/\\\____________\/\\\_/\\_____\/\\\______\//\\\__/\\\_____\/\\\____\/\\\_\//\\\__/\\\__  
+       _\/\\\______\//\\\_\/\\\____\//\\\_____________/\\\\\\\\\\___________\/\\\______________\///\\\\\/___\/\\\____________\//\\\\\______\/\\\_______\///\\\\\/____/\\\\\\\\\_\/\\\__\///\\\\\/___ 
+        _\///________\///__\///______\///_____________\//////////____________\///_________________\/////_____\///______________\/////_______\///__________\/////_____\/////////__\///_____\/////_____
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">sudo@rivsportfolio:~$</span>
+                        <span class="welcome-text">Hi! I'm Riv, welcome to my portfolio</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">sudo@rivsportfolio:~$</span>
+                        <span class="welcome-text">Type 'help' to see available commands</span>
+                    </div>
+                </div>
+                <div class="terminal-input-line">
+                    <span class="prompt">sudo@rivsportfolio:~$</span>
+                    <input type="text" class="terminal-input" id="terminalInput" autofocus>
+                    <span class="cursor" id="cursor">█</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Window Container -->
+        <div class="windows-container" id="windowsContainer"></div>
+
+        <!-- In-page modal: ask about ASCII art -->
+        <div id="asciiModal" class="modal" aria-hidden="true">
+            <div class="modal-backdrop"></div>
+            <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="asciiModalTitle">
+                <h3 id="asciiModalTitle">Accessibility preference</h3>
+                <p>Does the ASCII art hurt your eyes? Choose <strong>Turn off</strong> to replace it with a plain title.</p>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-hide">Turn off</button>
+                    <button class="modal-btn modal-btn-keep">Keep ASCII</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- In-page modal: ask about text size -->
+        <div id="textSizeModal" class="modal" aria-hidden="true">
+            <div class="modal-backdrop"></div>
+            <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="textSizeModalTitle">
+                <h3 id="textSizeModalTitle">Text size preference</h3>
+                <p>Would you like larger text for better readability?</p>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-enlarge">Yes, enlarge text</button>
+                    <button class="modal-btn modal-btn-normal">Keep normal size</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
