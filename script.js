@@ -762,17 +762,19 @@ class RetroTerminal {
     }
 
     minimizeWindow(window) {
-        const content = window.querySelector('.window-content');
         const title = window.querySelector('.window-title').textContent;
+        const isMinimized = window.dataset.minimized === 'true';
         
-        if (content.style.display === 'none') {
+        if (isMinimized) {
             // Restore window
-            content.style.display = 'block';
-            window.style.display = 'block';
+            window.dataset.minimized = 'false';
+            window.style.display = 'flex';
+            this.focusWindow(window);
             this.removeFromTaskbar(window.id);
         } else {
             // Minimize window
-            content.style.display = 'none';
+            window.dataset.minimized = 'true';
+            window.style.display = 'none';
             this.addToTaskbar(window.id, title);
         }
     }
@@ -791,9 +793,8 @@ class RetroTerminal {
         btn.addEventListener('click', () => {
             const window = document.getElementById(windowId);
             if (window) {
-                const content = window.querySelector('.window-content');
-                content.style.display = 'block';
-                window.style.display = 'block';
+                window.dataset.minimized = 'false';
+                window.style.display = 'flex';
                 this.focusWindow(window);
                 this.removeFromTaskbar(windowId);
             }
