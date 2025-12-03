@@ -43,7 +43,9 @@ body[data-theme="dos"] {
 
 body {
     font-family: 'VT323', monospace;
-    background: var(--darker-bg);
+    background: url('background.jpg') center/cover no-repeat fixed;
+    background-color: var(--darker-bg);
+    filter: saturate(1.2);
     color: var(--text-color);
     overflow: hidden;
     height: 100vh;
@@ -51,12 +53,25 @@ body {
     position: relative;
 }
 
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('background.jpg') center/cover no-repeat fixed;
+    filter: blur(30px);
+    z-index: -1;
+    pointer-events: none;
+}
+
 /* CRT Screen Effect */
 .crt-screen {
     width: 100%;
     height: 100%;
     position: relative;
-    background: var(--dark-bg);
+    background: linear-gradient(180deg, rgba(138, 43, 226, 0.4) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 255, 255, 0.3) 100%);
     overflow: hidden;
     perspective: 1000px;
 }
@@ -68,15 +83,15 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
     pointer-events: none;
     z-index: 999;
 }
 
 /* CRT Curvature Effect */
 .terminal-container {
-    transform: perspective(1500px) rotateX(0.5deg) rotateY(-0.5deg);
-    border-radius: 40px;
+    transform: none;
+    border-radius: 0;
     position: relative;
 }
 
@@ -135,8 +150,8 @@ body {
 .terminal-container {
     width: 100%;
     height: 100%;
-    background: var(--terminal-bg);
-    border: 1px solid var(--border-color);
+    background: rgba(17, 17, 17, 0.7);
+    border: none;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -145,7 +160,7 @@ body {
 }
 
 .terminal-header {
-    background: var(--darker-bg);
+    background: rgba(10, 10, 10, 0.6);
     padding: 12px 20px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -732,7 +747,7 @@ body.enlarged-text .modal-btn {
     position: absolute;
     inset: 0;
     background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(102px);
 }
 
 .modal-box {
