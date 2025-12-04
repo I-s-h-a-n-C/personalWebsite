@@ -972,3 +972,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// JavaScript to restart animation every 11 seconds (6s animation + 5s wait)
+const line = document.querySelector('.horizontal-sweep-line');
+
+function restartAnimation() {
+    // Reset animation
+    line.style.animation = 'none';
+    line.offsetHeight; // Trigger reflow
+    line.style.animation = 'sweepDown 6s linear forwards';
+    
+    // Schedule next animation
+    setTimeout(() => {
+        line.style.animationDelay = '0s';
+        restartAnimation();
+    }, 11000); // 6s animation + 5s wait
+}
+
+// Start the cycle
+restartAnimation();
+
