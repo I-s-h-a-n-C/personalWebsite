@@ -915,11 +915,16 @@ function startBootSequence(onComplete) {
     try {
         const terminalOutput = document.getElementById('terminalOutput');
         const messages = [
-            'POST: Checking system...',
-            'Initializing video output...',
-            'Loading terminal modules...',
-            'Calibrating display...',
-            'Welcome to Riv\'s Portfolio'
+            'POST: IBM-compat BIOS v1.0',
+            'CPU: 8086 @ 4.77MHz ... OK',
+            'RAM: 64KB Test: 65536/65536',
+            'Video: CGA 80x25 16Color ... OK',
+            'Floppy Drive A: Not present',
+            'Bootloader: rivboot v0.1',
+            'Loading kernel modules...',
+            'Initializing terminal interface...',
+            "Riv's Portfolio - booting...",
+            'SYSTEM: READY'
         ];
 
         // Helper to type text into a given element

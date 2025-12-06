@@ -163,6 +163,22 @@ body::before {
     font-size: 18px;
 }
 
+/* Boot sequence lines styling (retro look) */
+.boot-line {
+    color: var(--neon-green);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.boot-divider {
+    color: var(--text-color);
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    opacity: 0.85;
+    margin-bottom: 8px;
+}
+
 /* Terminal Styles */
 .terminal-container {
     width: 100%;
