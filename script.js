@@ -913,24 +913,7 @@ class RetroTerminal {
 // Simple retro boot / initialization sequence. Calls `onComplete` when finished.
 function startBootSequence(onComplete) {
     try {
-        const containerId = 'boot-sequence-container';
-        let container = document.getElementById(containerId);
-        if (!container) {
-            container = document.createElement('div');
-            container.id = containerId;
-            container.style.position = 'fixed';
-            container.style.top = '40%';
-            container.style.left = '50%';
-            container.style.transform = 'translate(-50%, -50%)';
-            container.style.zIndex = '3000';
-            container.style.pointerEvents = 'none';
-            container.style.fontFamily = "'VT323', monospace";
-            container.style.color = 'var(--neon-green)';
-            container.style.fontSize = '18px';
-            container.style.textAlign = 'center';
-            document.body.appendChild(container);
-        }
-
+        const terminalOutput = document.getElementById('terminalOutput');
         const messages = [
             'POST: Checking system...',
             'Initializing video output...',
@@ -939,37 +922,79 @@ function startBootSequence(onComplete) {
             'Welcome to Riv\'s Portfolio'
         ];
 
-        let idx = 0;
-
-        const typeMessage = (msg, cb) => {
-            container.textContent = '';
+        // Helper to type text into a given element
+        const typeIntoElement = (el, text, charDelay = 30, cb) => {
             let i = 0;
             const tick = () => {
-                if (i <= msg.length) {
-                    container.textContent = msg.slice(0, i);
-                    i++;
-                    setTimeout(tick, 35);
+                if (i < text.length) {
+                    el.innerHTML += text[i++];
+                    if (terminalOutput) terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    setTimeout(tick, charDelay);
                 } else {
-                    setTimeout(cb, 600);
+                    if (typeof cb === 'function') cb();
                 }
             };
             tick();
         };
 
+        let idx = 0;
+
         const next = () => {
-            if (idx < messages.length) {
-                typeMessage(messages[idx], () => {
+            if (idx >= messages.length) {
+                // finished
+                setTimeout(() => {
+                    if (typeof onComplete === 'function') onComplete();
+                }, 200);
+                return;
+            }
+
+            const msg = messages[idx];
+
+            if (terminalOutput) {
+                // create a typed line inside terminal output
+                const line = document.createElement('div');
+                line.className = 'terminal-line boot-line';
+                terminalOutput.appendChild(line);
+
+                // type the message
+                typeIntoElement(line, msg, 28, () => {
+                    // after message, add a divider of =====
+                    const divLine = document.createElement('div');
+                    divLine.className = 'terminal-line boot-divider';
+                    divLine.textContent = '=====';
+                    terminalOutput.appendChild(divLine);
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
                     idx++;
-                    next();
+                    setTimeout(next, 250);
                 });
             } else {
-                // small fade out
-                container.style.transition = 'opacity 400ms ease-out';
-                container.style.opacity = '0';
-                setTimeout(() => {
-                    container.remove();
-                    if (typeof onComplete === 'function') onComplete();
-                }, 450);
+                // fallback to overlay typing if terminalOutput isn't present
+                const containerId = 'boot-sequence-container';
+                let container = document.getElementById(containerId);
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = containerId;
+                    container.style.position = 'fixed';
+                    container.style.top = '40%';
+                    container.style.left = '50%';
+                    container.style.transform = 'translate(-50%, -50%)';
+                    container.style.zIndex = '3000';
+                    container.style.pointerEvents = 'none';
+                    container.style.fontFamily = "'VT323', monospace";
+                    container.style.color = 'var(--neon-green)';
+                    container.style.fontSize = '18px';
+                    container.style.textAlign = 'center';
+                    document.body.appendChild(container);
+                }
+
+                container.textContent = '';
+                typeIntoElement(container, msg, 28, () => {
+                    const div = document.createElement('div');
+                    div.textContent = '=====';
+                    container.appendChild(div);
+                    idx++;
+                    setTimeout(next, 250);
+                });
             }
         };
 
