@@ -893,8 +893,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         const asciiEl = document.querySelector('.terminal-line.ascii-art');
         const asciiModal = document.getElementById('asciiModal');
-        const textSizeModal = document.getElementById('textSizeModal');
-        
+
         if (asciiModal) {
             // show ASCII modal
             asciiModal.classList.add('visible');
@@ -906,8 +905,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const closeAsciiModal = () => {
                 asciiModal.classList.remove('visible');
                 asciiModal.setAttribute('aria-hidden', 'true');
-                // After ASCII modal closes, show text size modal
-                showTextSizeModal();
+                // Initialize terminal after ASCII modal closes
+                new RetroTerminal();
             };
 
             if (hideBtn) hideBtn.addEventListener('click', () => {
@@ -918,53 +917,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (keepBtn) keepBtn.addEventListener('click', () => {
                 closeAsciiModal();
             });
-        }
-
-        const showTextSizeModal = () => {
-            if (textSizeModal) {
-                textSizeModal.classList.add('visible');
-                textSizeModal.setAttribute('aria-hidden', 'false');
-
-                const enlargeBtn = textSizeModal.querySelector('.modal-btn-enlarge');
-                const normalBtn = textSizeModal.querySelector('.modal-btn-normal');
-
-                const closeTextSizeModal = () => {
-                    textSizeModal.classList.remove('visible');
-                    textSizeModal.setAttribute('aria-hidden', 'true');
-                    // After text size modal closes, initialize terminal
-                    new RetroTerminal();
-                };
-
-                const showFadeMessage = () => {
-                    const modalBox = textSizeModal.querySelector('.modal-box');
-                    const originalContent = modalBox.innerHTML;
-                    modalBox.innerHTML = '<div style="font-size: 24px; color: #00ff88; text-shadow: 0 0 10px #00ff88;">old...</div>';
-                    
-                    setTimeout(() => {
-                        textSizeModal.classList.remove('visible');
-                        textSizeModal.setAttribute('aria-hidden', 'true');
-                        modalBox.innerHTML = originalContent;
-                        new RetroTerminal();
-                    }, 1500);
-                };
-
-                if (enlargeBtn) enlargeBtn.addEventListener('click', () => {
-                    document.body.classList.add('enlarged-text');
-                    showFadeMessage();
-                });
-
-                if (normalBtn) normalBtn.addEventListener('click', () => {
-                    showFadeMessage();
-                });
-            } else {
-                // If text size modal not found, initialize terminal anyway
-                new RetroTerminal();
-            }
-        };
-
-        // If ASCII modal not found, show text size modal directly
-        if (!asciiModal) {
-            showTextSizeModal();
+        } else {
+            // If no ASCII modal, initialize terminal immediately
+            new RetroTerminal();
         }
     } catch (e) {
         // ignore if DOM not found, just initialize terminal
