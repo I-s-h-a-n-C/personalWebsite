@@ -184,13 +184,13 @@ class RetroTerminal {
             }
 
             const now = new Date();
-            const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
             const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
             const dateStr = now.toLocaleDateString(undefined, dateOptions);
             const timeStr = now.toLocaleTimeString(undefined, timeOptions);
 
             // Keep the title and datetime on the same line and matching style
-            bar.innerHTML = `<span class="plain-title">Riv's Portfolio</span><span class="datetime-display">${dateStr} ${timeStr}</span>`;
+            bar.innerHTML = `<span class="datetime-display">${dateStr} ${timeStr}</span>`;
         } catch (err) {
             // ignore errors updating date/time
         }
@@ -914,21 +914,15 @@ class RetroTerminal {
 function startBootSequence(onComplete) {
     try {
         const terminalOutput = document.getElementById('terminalOutput');
+
+        // Two boot messages: preparing and installing a package
         const messages = [
-            'POST: IBM-compat BIOS v1.0',
-            'CPU: 8086 @ 4.77MHz ... OK',
-            'RAM: 64KB Test: 65536/65536',
-            'Video: CGA 80x25 16Color ... OK',
-            'Floppy Drive A: Not present',
-            'Bootloader: rivboot v0.1',
-            'Loading kernel modules...',
-            'Initializing terminal interface...',
-            "Riv's Portfolio - booting...",
-            'SYSTEM: READY'
+            "Preparing package 'rivs-utils'...",
+            "Installing package 'rivs-utils'"
         ];
 
         // Helper to type text into a given element
-        const typeIntoElement = (el, text, charDelay = 30, cb) => {
+        const typeIntoElement = (el, text, charDelay = 18, cb) => {
             let i = 0;
             const tick = () => {
                 if (i < text.length) {
@@ -946,34 +940,86 @@ function startBootSequence(onComplete) {
 
         const next = () => {
             if (idx >= messages.length) {
-                // finished
-                setTimeout(() => {
-                    if (typeof onComplete === 'function') onComplete();
-                }, 200);
+                // finished, call onComplete shortly
+                setTimeout(() => { if (typeof onComplete === 'function') onComplete(); }, 200);
                 return;
             }
 
             const msg = messages[idx];
 
             if (terminalOutput) {
-                // create a typed line inside terminal output
                 const line = document.createElement('div');
                 line.className = 'terminal-line boot-line';
                 terminalOutput.appendChild(line);
 
-                // type the message
-                typeIntoElement(line, msg, 28, () => {
-                    // after message, add a divider of =====
-                    const divLine = document.createElement('div');
-                    divLine.className = 'terminal-line boot-divider';
-                    divLine.textContent = '=====';
-                    terminalOutput.appendChild(divLine);
-                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
-                    idx++;
-                    setTimeout(next, 250);
-                });
+                // For the second message (install), after the header we simulate a quick install progress
+                if (idx === 1) {
+                    // Type the install header quickly
+                    typeIntoElement(line, msg + ': ', 14, () => {
+                        // simulate progress with a few random '====' lines and percentages
+                        const steps = Math.floor(Math.random() * 4) + 3; // 3-6 steps
+                        let step = 0;
+
+                        const progressNext = () => {
+                            if (step >= steps) {
+                                // final success line
+                                const okLine = document.createElement('div');
+                                okLine.className = 'terminal-line boot-divider';
+                                okLine.textContent = 'Done.';
+                                terminalOutput.appendChild(okLine);
+                                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                                idx++;
+                                setTimeout(next, 120);
+                                return;
+                            }
+
+                            // create a progress line similar to Arduino upload output
+                            const progressLine = document.createElement('div');
+                            progressLine.className = 'terminal-line boot-progress';
+                            // random amount of '=' between 8 and 36 to look varied
+                            const percent = Math.min(99, Math.round(((step + 1) / steps) * 100));
+                            const randBetween = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+                            let eqCount;
+                            if (percent <= 20) {
+                                eqCount = randBetween(6, 8);
+                            } else if (percent <= 40) {
+                                eqCount = randBetween(9, 12);
+                            } else if (percent <= 60) {
+                                eqCount = randBetween(13, 18);
+                            } else if (percent <= 80) {
+                                eqCount = randBetween(19, 26);
+                            } else {
+                                eqCount = randBetween(27, 36);
+                            }
+                            const eqs = '='.repeat(eqCount);
+                            progressLine.textContent = `${eqs} ${percent}%`;
+                            terminalOutput.appendChild(progressLine);
+                            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+
+                            // small randomized delay so whole boot < 5s
+                            const delayBetween = 80 + Math.floor(Math.random() * 140); // 80-220ms
+                            step++;
+                            setTimeout(progressNext, delayBetween);
+                        };
+
+                        // start progress
+                        setTimeout(progressNext, 120);
+                    });
+                } else {
+                    // Regular short message
+                    typeIntoElement(line, msg, 18, () => {
+                        const divLine = document.createElement('div');
+                        divLine.className = 'terminal-line boot-divider';
+                        // small random divider to mimic device output
+                        divLine.textContent = '='.repeat(Math.floor(Math.random() * 6) + 3);
+                        terminalOutput.appendChild(divLine);
+                        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                        idx++;
+                        setTimeout(next, 140);
+                    });
+                }
             } else {
-                // fallback to overlay typing if terminalOutput isn't present
+                // fallback overlay: type quickly and finish
                 const containerId = 'boot-sequence-container';
                 let container = document.getElementById(containerId);
                 if (!container) {
@@ -993,12 +1039,13 @@ function startBootSequence(onComplete) {
                 }
 
                 container.textContent = '';
-                typeIntoElement(container, msg, 28, () => {
+                typeIntoElement(container, msg, 18, () => {
+                    const divider = '='.repeat(Math.floor(Math.random() * 6) + 3);
                     const div = document.createElement('div');
-                    div.textContent = '=====';
+                    div.textContent = divider;
                     container.appendChild(div);
                     idx++;
-                    setTimeout(next, 250);
+                    setTimeout(next, 120);
                 });
             }
         };

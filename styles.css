@@ -136,7 +136,7 @@ body::before {
 /* Top center title + datetime */
 .top-center-bar {
     position: fixed;
-    top: 20px;
+    top: 13px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1001;
@@ -158,25 +158,9 @@ body::before {
 }
 
 .top-center-bar .datetime-display {
-    color: var(--neon-green);
+    color: gray;
     font-family: 'VT323', monospace;
     font-size: 18px;
-}
-
-/* Boot sequence lines styling (retro look) */
-.boot-line {
-    color: var(--neon-green);
-    font-family: 'VT323', monospace;
-    font-size: 16px;
-    margin-bottom: 6px;
-}
-
-.boot-divider {
-    color: var(--text-color);
-    font-family: 'VT323', monospace;
-    font-size: 14px;
-    opacity: 0.85;
-    margin-bottom: 8px;
 }
 
 /* Terminal Styles */
@@ -818,12 +802,12 @@ body.enlarged-text .modal-btn {
 }
 
 .modal-btn-hide {
-    background: var(--neon-green);
-    color: var(--darker-bg);
+    background: transparent;
 }
 
 .modal-btn-keep {
-    background: transparent;
+    background: var(--neon-green);
+    color: var(--darker-bg);
 }
 
 .form-group {
