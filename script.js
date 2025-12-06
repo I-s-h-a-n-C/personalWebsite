@@ -172,6 +172,30 @@ class RetroTerminal {
         }
     }
 
+    updateDateTime() {
+        try {
+            // Ensure a top-center bar exists containing the title and datetime
+            let bar = document.querySelector('.top-center-bar');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.className = 'top-center-bar';
+                // Insert at top of body so it's on top of other content
+                document.body.appendChild(bar);
+            }
+
+            const now = new Date();
+            const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const dateStr = now.toLocaleDateString(undefined, dateOptions);
+            const timeStr = now.toLocaleTimeString(undefined, timeOptions);
+
+            // Keep the title and datetime on the same line and matching style
+            bar.innerHTML = `<span class="plain-title">Riv's Portfolio</span><span class="datetime-display">${dateStr} ${timeStr}</span>`;
+        } catch (err) {
+            // ignore errors updating date/time
+        }
+    }
+
     processCommand() {
         const command = this.terminalInput.value.trim().toLowerCase();
         
@@ -883,6 +907,76 @@ class RetroTerminal {
         const nextIndex = (currentIndex + 1) % this.windows.length;
         this.focusWindow(this.windows[nextIndex]);
     }
+
+}
+
+// Simple retro boot / initialization sequence. Calls `onComplete` when finished.
+function startBootSequence(onComplete) {
+    try {
+        const containerId = 'boot-sequence-container';
+        let container = document.getElementById(containerId);
+        if (!container) {
+            container = document.createElement('div');
+            container.id = containerId;
+            container.style.position = 'fixed';
+            container.style.top = '40%';
+            container.style.left = '50%';
+            container.style.transform = 'translate(-50%, -50%)';
+            container.style.zIndex = '3000';
+            container.style.pointerEvents = 'none';
+            container.style.fontFamily = "'VT323', monospace";
+            container.style.color = 'var(--neon-green)';
+            container.style.fontSize = '18px';
+            container.style.textAlign = 'center';
+            document.body.appendChild(container);
+        }
+
+        const messages = [
+            'POST: Checking system...',
+            'Initializing video output...',
+            'Loading terminal modules...',
+            'Calibrating display...',
+            'Welcome to Riv\'s Portfolio'
+        ];
+
+        let idx = 0;
+
+        const typeMessage = (msg, cb) => {
+            container.textContent = '';
+            let i = 0;
+            const tick = () => {
+                if (i <= msg.length) {
+                    container.textContent = msg.slice(0, i);
+                    i++;
+                    setTimeout(tick, 35);
+                } else {
+                    setTimeout(cb, 600);
+                }
+            };
+            tick();
+        };
+
+        const next = () => {
+            if (idx < messages.length) {
+                typeMessage(messages[idx], () => {
+                    idx++;
+                    next();
+                });
+            } else {
+                // small fade out
+                container.style.transition = 'opacity 400ms ease-out';
+                container.style.opacity = '0';
+                setTimeout(() => {
+                    container.remove();
+                    if (typeof onComplete === 'function') onComplete();
+                }, 450);
+            }
+        };
+
+        next();
+    } catch (e) {
+        if (typeof onComplete === 'function') onComplete();
+    }
 }
 
 // Initialize terminal when DOM is loaded
@@ -893,7 +987,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         const asciiEl = document.querySelector('.terminal-line.ascii-art');
         const asciiModal = document.getElementById('asciiModal');
-
         if (asciiModal) {
             // show ASCII modal
             asciiModal.classList.add('visible');
@@ -905,8 +998,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const closeAsciiModal = () => {
                 asciiModal.classList.remove('visible');
                 asciiModal.setAttribute('aria-hidden', 'true');
-                // Initialize terminal after ASCII modal closes
-                new RetroTerminal();
+                // Initialize terminal after ASCII modal closes (with boot)
+                startBootSequence(() => new RetroTerminal());
             };
 
             if (hideBtn) hideBtn.addEventListener('click', () => {
@@ -918,12 +1011,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeAsciiModal();
             });
         } else {
-            // If no ASCII modal, initialize terminal immediately
-            new RetroTerminal();
+            // If no ASCII modal, run boot sequence then initialize terminal
+            startBootSequence(() => new RetroTerminal());
         }
     } catch (e) {
         // ignore if DOM not found, just initialize terminal
-        new RetroTerminal();
+        startBootSequence(() => new RetroTerminal());
     }
 });
 
