@@ -46,6 +46,13 @@ class RetroTerminal {
         // Prevent context menu on windows
         this.windowsContainer.addEventListener('contextmenu', (e) => e.preventDefault());
 
+        // Load saved settings (theme / color scheme) before rendering
+        try {
+            this.loadSettings();
+        } catch (e) {
+            // ignore
+        }
+
         // Initialize date/time display
         this.updateDateTime();
         setInterval(() => this.updateDateTime(), 1000);
@@ -75,6 +82,30 @@ class RetroTerminal {
 
         // Position cursor initially
         setTimeout(() => this.updateCursor(), 0);
+
+        // Auto-scroll whenever new lines or nodes are appended directly to the terminal output
+        try {
+            if (this.terminalOutput && !this._terminalObserver) {
+                const mo = new MutationObserver(() => {
+                    try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
+                });
+                mo.observe(this.terminalOutput, { childList: true });
+                this._terminalObserver = mo;
+            }
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    loadSettings() {
+        try {
+            const storedScheme = localStorage.getItem('rivs_colorScheme');
+            const storedTheme = localStorage.getItem('rivs_theme');
+            if (storedScheme) this.switchColorScheme(storedScheme, true);
+            if (storedTheme) this.switchTheme(storedTheme, true);
+        } catch (e) {
+            // localStorage may be unavailable; ignore
+        }
     }
 
     handleKeyPress(e) {
@@ -284,12 +315,15 @@ class RetroTerminal {
             if (charIndex < text.length) {
                 line.innerHTML += text[charIndex];
                 charIndex++;
+                // keep terminal scrolled while typing
+                try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
                 setTimeout(typeCharacter, this.typingSpeed);
             }
         };
         
         typeCharacter();
-        this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight;
+        // ensure scroll after adding the line (in case text is empty)
+        try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
     }
 
     showHelp() {
@@ -522,7 +556,7 @@ class RetroTerminal {
         }
     }
 
-    switchColorScheme(scheme) {
+    switchColorScheme(scheme, silent = false) {
         const schemes = {
             'green': { primary: '#00ff88', secondary: '#ff6b9d', accent: '#4dd0e1' },
             'purple': { primary: '#b366ff', secondary: '#ff1493', accent: '#00ffff' },
@@ -532,7 +566,7 @@ class RetroTerminal {
         };
 
         if (!schemes[scheme]) {
-            this.addOutputLine(`Unknown color scheme: ${scheme}. Available: green, purple, blue, orange, pink`, 'error-text');
+            if (!silent) this.addOutputLine(`Unknown color scheme: ${scheme}. Available: green, purple, blue, orange, pink`, 'error-text');
             return;
         }
 
@@ -542,8 +576,10 @@ class RetroTerminal {
         root.style.setProperty('--neon-green', colors.primary);
         root.style.setProperty('--neon-pink', colors.secondary);
         root.style.setProperty('--neon-cyan', colors.accent);
-        
-        this.addOutputLine(`Color scheme changed to "${scheme}"`, 'success-text');
+
+        try { localStorage.setItem('rivs_colorScheme', scheme); } catch (e) {}
+
+        if (!silent) this.addOutputLine(`Color scheme changed to "${scheme}"`, 'success-text');
     }
 
     showColorOptions() {
@@ -551,16 +587,17 @@ class RetroTerminal {
         this.addOutputLine('Available schemes: green, purple, blue, orange, pink', 'info-text');
     }
 
-    switchTheme(theme) {
+    switchTheme(theme, silent = false) {
         const themes = {
-            'default': { bg: '#0a0a0a', text: '#00ff88' },
+            // default uses CSS background-image; keep background transparent so image remains visible
+            'default': { bg: 'transparent', text: '#00ff88' },
             'amber': { bg: '#1a1a0a', text: '#ffb000' },
             'monochrome': { bg: '#0f0f0f', text: '#cccccc' },
             'dos': { bg: '#0000aa', text: '#00ff00' }
         };
 
         if (!themes[theme]) {
-            this.addOutputLine(`Unknown theme: ${theme}. Available: default, amber, monochrome, dos`, 'error-text');
+            if (!silent) this.addOutputLine(`Unknown theme: ${theme}. Available: default, amber, monochrome, dos`, 'error-text');
             return;
         }
 
@@ -569,7 +606,12 @@ class RetroTerminal {
         const container = document.getElementById('terminalContainer');
         
         if (container) {
-            container.style.backgroundColor = themeColors.bg;
+            // For default theme we remove any inline background so the CSS background-image can show
+            if (theme === 'default') {
+                container.style.backgroundColor = '';
+            } else {
+                container.style.backgroundColor = themeColors.bg;
+            }
             container.style.color = themeColors.text;
             document.querySelectorAll('.terminal-line').forEach(line => {
                 if (!line.classList.contains('error-text')) {
@@ -577,8 +619,10 @@ class RetroTerminal {
                 }
             });
         }
-        
-        this.addOutputLine(`Terminal theme changed to "${theme}"`, 'success-text');
+
+        try { localStorage.setItem('rivs_theme', theme); } catch (e) {}
+
+        if (!silent) this.addOutputLine(`Terminal theme changed to "${theme}"`, 'success-text');
     }
 
     showThemeOptions() {
