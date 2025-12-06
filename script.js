@@ -82,19 +82,6 @@ class RetroTerminal {
 
         // Position cursor initially
         setTimeout(() => this.updateCursor(), 0);
-
-        // Auto-scroll whenever new lines or nodes are appended directly to the terminal output
-        try {
-            if (this.terminalOutput && !this._terminalObserver) {
-                const mo = new MutationObserver(() => {
-                    try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
-                });
-                mo.observe(this.terminalOutput, { childList: true });
-                this._terminalObserver = mo;
-            }
-        } catch (e) {
-            // ignore
-        }
     }
 
     loadSettings() {
@@ -105,6 +92,54 @@ class RetroTerminal {
             if (storedTheme) this.switchTheme(storedTheme, true);
         } catch (e) {
             // localStorage may be unavailable; ignore
+        }
+    }
+
+    // Ensure the prompt/input is visible in the viewport
+    ensurePromptVisible() {
+        try {
+            const input = this.terminalInput || document.getElementById('terminalInput');
+            if (input && typeof input.scrollIntoView === 'function') {
+                input.scrollIntoView({ block: 'end', inline: 'nearest' });
+            }
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    // Trim oldest terminal output lines to keep the prompt/input visible
+    trimOutput(maxLines = 200) {
+        try {
+            const out = this.terminalOutput;
+            if (!out) return;
+
+            // Prefer positional trimming: remove any lines that appear above the top-center bar
+            const bar = document.querySelector('.top-center-bar');
+            if (bar) {
+                const barRect = bar.getBoundingClientRect();
+                // Safety cap to avoid pathological loops
+                let removed = 0;
+                while (out.firstChild && removed < 1000) {
+                    const first = out.firstChild;
+                    const rect = first.getBoundingClientRect();
+                    // If the bottom of the first child is above the bottom of the bar,
+                    // it is visually above the strip and should be removed.
+                    if (rect.bottom < barRect.bottom) {
+                        out.removeChild(first);
+                        removed++;
+                    } else {
+                        break;
+                    }
+                }
+                return;
+            }
+
+            // Fallback: simple max-lines trimming
+            while (out.children.length > maxLines) {
+                out.removeChild(out.firstChild);
+            }
+        } catch (e) {
+            // ignore trimming errors
         }
     }
 
@@ -305,6 +340,9 @@ class RetroTerminal {
     }
 
     addOutputLine(text, className = '') {
+        // Trim output before adding new lines so the input stays visible
+        try { this.trimOutput(200); } catch (e) {}
+
         const line = document.createElement('div');
         line.className = `terminal-line ${className}`;
         this.terminalOutput.appendChild(line);
@@ -317,6 +355,7 @@ class RetroTerminal {
                 charIndex++;
                 // keep terminal scrolled while typing
                 try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
+                try { this.ensurePromptVisible(); } catch (e) {}
                 setTimeout(typeCharacter, this.typingSpeed);
             }
         };
@@ -324,6 +363,7 @@ class RetroTerminal {
         typeCharacter();
         // ensure scroll after adding the line (in case text is empty)
         try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
+        try { this.ensurePromptVisible(); } catch (e) {}
     }
 
     showHelp() {
@@ -1012,6 +1052,12 @@ function startBootSequence(onComplete) {
                                 okLine.textContent = 'Done.';
                                 terminalOutput.appendChild(okLine);
                                 terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                                try {
+                                    const inputEl = document.getElementById('terminalInput');
+                                    if (inputEl && typeof inputEl.scrollIntoView === 'function') {
+                                        inputEl.scrollIntoView({ block: 'end', inline: 'nearest' });
+                                    }
+                                } catch (e) {}
                                 idx++;
                                 setTimeout(next, 120);
                                 return;
@@ -1039,6 +1085,12 @@ function startBootSequence(onComplete) {
                             progressLine.textContent = `${eqs} ${percent}%`;
                             terminalOutput.appendChild(progressLine);
                             terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                            try {
+                                const inputEl = document.getElementById('terminalInput');
+                                if (inputEl && typeof inputEl.scrollIntoView === 'function') {
+                                    inputEl.scrollIntoView({ block: 'end', inline: 'nearest' });
+                                }
+                            } catch (e) {}
 
                             // small randomized delay so whole boot < 5s
                             const delayBetween = 80 + Math.floor(Math.random() * 140); // 80-220ms
@@ -1058,6 +1110,12 @@ function startBootSequence(onComplete) {
                         divLine.textContent = '='.repeat(Math.floor(Math.random() * 6) + 3);
                         terminalOutput.appendChild(divLine);
                         terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                        try {
+                            const inputEl = document.getElementById('terminalInput');
+                            if (inputEl && typeof inputEl.scrollIntoView === 'function') {
+                                inputEl.scrollIntoView({ block: 'end', inline: 'nearest' });
+                            }
+                        } catch (e) {}
                         idx++;
                         setTimeout(next, 140);
                     });
