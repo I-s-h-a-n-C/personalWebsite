@@ -16,7 +16,7 @@
     --border-color: #2a2a2a;
 }
 
-/* Terminal Theme Styles */
+/* themes */
 body[data-theme="amber"] {
     --neon-green: #ffb000;
     --dark-bg: #1a1a0a;
@@ -66,7 +66,7 @@ body::before {
     pointer-events: none;
 }
 
-/* CRT Screen Effect */
+/* Crt screen */
 .crt-screen {
     width: 100%;
     height: 100%;
@@ -88,7 +88,6 @@ body::before {
     z-index: 999;
 }
 
-/* CRT Curvature Effect */
 .terminal-container {
     transform: none;
     border-radius: 0;
@@ -96,7 +95,6 @@ body::before {
 }
 
 .screen-glow {
-    /* removed neon glows */
     box-shadow: inset 0 0 6px rgba(0,0,0,0.25);
 }
 
@@ -127,13 +125,11 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    /* removed heavy neon glow */
     box-shadow: none;
     pointer-events: none;
     z-index: 999;
 }
 
-/* Top center title + datetime */
 .top-center-bar {
     position: fixed;
     top: 13px;
@@ -163,7 +159,7 @@ body::before {
     font-size: 18px;
 }
 
-/* Terminal Styles */
+
 .terminal-container {
     width: 100%;
     height: 100%;
@@ -239,10 +235,11 @@ body::before {
     animation: blink 1s steps(1) infinite;
     border-radius: 1px;
     pointer-events: none;
-    /* will be positioned by JS */
 }
 
 @keyframes blink {
+
+/* themes */
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0; }
 }
@@ -263,7 +260,7 @@ body::before {
     color: var(--neon-cyan);
 }
 
-/* Window Styles */
+
 .windows-container {
     position: absolute;
     top: 0;
@@ -274,7 +271,7 @@ body::before {
     z-index: 100;
 }
 
-/* Taskbar for minimized windows */
+
 .taskbar {
     position: fixed;
     bottom: 0;
@@ -307,7 +304,6 @@ body::before {
 .taskbar-btn:hover {
     background: var(--neon-green);
     color: var(--darker-bg);
-    /* removed glow */
 }
 
 .retro-window {
@@ -428,7 +424,7 @@ body::before {
     user-select: none;
 }
 
-/* Help Command Styles */
+
 .command-list {
     list-style: none;
     padding: 0;
@@ -455,7 +451,7 @@ body::before {
     color: var(--text-color);
 }
 
-/* About Section */
+
 .about-content {
     color: var(--text-color);
 }
@@ -477,7 +473,7 @@ body::before {
     line-height: 1.6;
 }
 
-/* Projects Section */
+
 .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -511,7 +507,7 @@ body::before {
     line-height: 1.5;
 }
 
-/* Project button/link styles */
+
 .project-actions {
     margin-top: 14px;
     display: flex;
@@ -536,7 +532,7 @@ body::before {
     color: var(--darker-bg);
 }
 
-/* Transient warning window styles */
+
 .retro-window.transient-warning {
     width: 360px;
     max-width: 90vw;
@@ -559,7 +555,7 @@ body::before {
     padding: 12px 8px;
 }
 
-/* Technologies tags + add form */
+
 .project-techs {
     margin-top: 12px;
     display: flex;
@@ -578,7 +574,7 @@ body::before {
 }
     
 
-/* Skills Section */
+
 .skills-container {
     margin-top: 15px;
 }
@@ -621,12 +617,7 @@ body::before {
     font-size: 14px;
 }
 
-/* Contact Form */
-.contact-form {
-    margin-top: 15px;
-}
 
-/* Contact links list */
 .contact-links {
     margin-top: 12px;
 }
@@ -652,7 +643,6 @@ body::before {
     color: var(--neon-cyan);
 }
 
-/* Plain title shown when ASCII art is disabled */
 .plain-title {
     color: var(--neon-green);
     font-family: 'VT323', monospace;
@@ -661,89 +651,8 @@ body::before {
     letter-spacing: 1px;
 }
 
-/* Text size enlargement */
-body.enlarged-text {
-    font-size: 20px;
-}
+/* contact links */
 
-body.enlarged-text .terminal-body {
-    font-size: 20px;
-}
-
-body.enlarged-text .terminal-line {
-    font-size: 20px;
-}
-
-body.enlarged-text .terminal-input {
-    font-size: 20px;
-}
-
-body.enlarged-text .prompt {
-    font-size: 20px;
-}
-
-body.enlarged-text .window-header {
-    font-size: 18px;
-}
-
-body.enlarged-text .window-content {
-    font-size: 18px;
-}
-
-body.enlarged-text .project-card {
-    font-size: 16px;
-}
-
-body.enlarged-text .project-title {
-    font-size: 18px;
-}
-
-body.enlarged-text .project-desc {
-    font-size: 16px;
-}
-
-body.enlarged-text .tech-tag {
-    font-size: 14px;
-}
-
-body.enlarged-text .project-link {
-    font-size: 16px;
-}
-
-body.enlarged-text .contact-list {
-    font-size: 18px;
-}
-
-body.enlarged-text .contact-list a {
-    font-size: 18px;
-}
-
-body.enlarged-text .skill-name {
-    font-size: 16px;
-}
-
-body.enlarged-text .skill-bar {
-    font-size: 14px;
-}
-
-body.enlarged-text .modal-box {
-    font-size: 18px;
-}
-
-body.enlarged-text .modal-box h3 {
-    font-size: 22px;
-}
-
-body.enlarged-text .modal-box p {
-    font-size: 18px;
-}
-
-body.enlarged-text .modal-btn {
-    font-size: 16px;
-    padding: 10px 20px;
-}
-
-/* Modal styles for ASCII preference */
 .modal {
     display: none;
     position: fixed;
@@ -810,59 +719,7 @@ body.enlarged-text .modal-btn {
     color: var(--darker-bg);
 }
 
-.form-group {
-    margin-bottom: 20px;
-}
 
-.form-label {
-    display: block;
-    color: var(--neon-green);
-    margin-bottom: 8px;
-    font-size: 18px;
-}
-
-.form-input,
-.form-textarea {
-    width: 100%;
-    background: var(--darker-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    font-family: 'VT323', monospace;
-    font-size: 18px;
-    padding: 12px;
-    outline: none;
-    transition: all 0.2s;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-    border-color: var(--neon-green);
-    background: #1a1a1a;
-}
-
-.form-textarea {
-    resize: vertical;
-    min-height: 120px;
-}
-
-.form-submit {
-    background: transparent;
-    border: 1px solid var(--neon-green);
-    color: var(--neon-green);
-    font-family: 'VT323', monospace;
-    font-size: 18px;
-    padding: 12px 32px;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 1px;
-}
-
-.form-submit:hover {
-    background: var(--neon-green);
-    color: var(--darker-bg);
-}
-
-/* Matrix Animation */
 .matrix-container {
     position: fixed;
     top: 0;
@@ -881,7 +738,7 @@ body.enlarged-text .modal-btn {
     font-family: 'VT323', monospace;
     font-size: 20px;
     animation: matrixFall linear infinite;
-    /* removed text glow */
+
 }
 
 @keyframes matrixFall {
@@ -890,7 +747,7 @@ body.enlarged-text .modal-btn {
     }
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
     .top-center-bar {
         font-size: 14px;
@@ -935,29 +792,19 @@ body.enlarged-text .modal-btn {
     }
 }
 
-/* ASCII Art Styles */
+
 .ascii-art {
     font-family: 'Courier New', monospace;
     white-space: pre;
     font-size: 10px;
     line-height: 1.2;
     color: var(--neon-green);
-    /* removed text glow */
     margin: 10px 0;
 }
 
-/* Fortune Quote */
-.fortune-quote {
-    padding: 20px;
-    border-left: 2px solid var(--neon-green);
-    background: var(--darker-bg);
-    margin: 15px 0;
-    font-style: italic;
-    color: var(--text-color);
-    line-height: 1.8;
-}
 
-/* Scrollbar Styling */
+
+
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -975,7 +822,7 @@ body.enlarged-text .modal-btn {
     background: var(--neon-green);
 }
 
-/* Matrix Animation */
+/* matrix */
 .matrix-container {
     position: fixed;
     top: 0;
@@ -994,7 +841,6 @@ body.enlarged-text .modal-btn {
     font-family: 'VT323', monospace;
     font-size: 20px;
     animation: matrixFall linear infinite;
-    /* removed text glow */
 }
 
 @keyframes matrixFall {

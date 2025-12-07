@@ -1,5 +1,3 @@
-// Terminal and Window Management System
-
 class RetroTerminal {
     constructor() {
         this.terminalInput = document.getElementById('terminalInput');
@@ -10,10 +8,10 @@ class RetroTerminal {
         this.currentWindow = null;
         this.commandHistory = [];
         this.historyIndex = -1;
-        this.colorScheme = 'neon-green'; // Current color scheme
-        this.terminalTheme = 'default'; // Current terminal theme
-        this.typingSpeed = 30; // ms per character for typing animation
-        this.minimizedWindows = []; // Track minimized windows
+        this.colorScheme = 'neon-green';
+        this.terminalTheme = 'default';
+        this.typingSpeed = 30;
+        this.minimizedWindows = [];
         this.allCommands = ['help', 'about', 'projects', 'skills', 'contact', 'quote', 'surprise', 'neo', 'color', 'theme', 'clear', 'exit', 'quit', 'snake', 'pong'];
         
         this.init();
@@ -29,13 +27,11 @@ class RetroTerminal {
             const cursorEl = document.getElementById('cursor');
             if (cursorEl) cursorEl.style.opacity = '0';
         });
-        
-        // Focus terminal input when clicking on terminal
+
         document.getElementById('terminalContainer').addEventListener('click', () => {
             this.terminalInput.focus();
         });
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.key === 'Tab') {
                 e.preventDefault();
@@ -43,44 +39,29 @@ class RetroTerminal {
             }
         });
 
-        // Prevent context menu on windows
         this.windowsContainer.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        // Load saved settings (theme / color scheme) before rendering
-        try {
-            this.loadSettings();
-        } catch (e) {
-            // ignore
-        }
+        try { this.loadSettings(); } catch (e) {}
 
-        // Initialize date/time display
         this.updateDateTime();
         setInterval(() => this.updateDateTime(), 1000);
-        // Helpful global key handling: if user presses `/` it focuses the terminal input
-        // and inserts the `/` character so they can start typing even if the terminal
-        // area is covered by windows. Ignore when an input/textarea/contentEditable is focused.
+
         document.addEventListener('keydown', (e) => {
             const active = document.activeElement;
             const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
-            if (isEditing) return; // don't steal focus from real inputs
-
+            if (isEditing) return;
             if (e.key === '/') {
                 e.preventDefault();
-                this.terminalInput.focus();
-                try {
+                try { this.terminalInput.focus();
                     const start = this.terminalInput.selectionStart || 0;
                     const end = this.terminalInput.selectionEnd || 0;
                     const val = this.terminalInput.value || '';
                     this.terminalInput.value = val.slice(0, start) + '/' + val.slice(end);
                     this.terminalInput.selectionStart = this.terminalInput.selectionEnd = start + 1;
-                } catch (err) {
-                    // fallback: just focus
-                    this.terminalInput.focus();
-                }
+                } catch (err) { this.terminalInput.focus(); }
             }
         }, true);
 
-        // Position cursor initially
         setTimeout(() => this.updateCursor(), 0);
     }
 
@@ -90,12 +71,9 @@ class RetroTerminal {
             const storedTheme = localStorage.getItem('rivs_theme');
             if (storedScheme) this.switchColorScheme(storedScheme, true);
             if (storedTheme) this.switchTheme(storedTheme, true);
-        } catch (e) {
-            // localStorage may be unavailable; ignore
-        }
+        } catch (e) {  }
     }
 
-    // Ensure the prompt/input is visible in the viewport
     ensurePromptVisible() {
         try {
             const input = this.terminalInput || document.getElementById('terminalInput');
@@ -103,27 +81,21 @@ class RetroTerminal {
                 input.scrollIntoView({ block: 'end', inline: 'nearest' });
             }
         } catch (e) {
-            // ignore
         }
     }
 
-    // Trim oldest terminal output lines to keep the prompt/input visible
     trimOutput(maxLines = 200) {
         try {
             const out = this.terminalOutput;
             if (!out) return;
 
-            // Prefer positional trimming: remove any lines that appear above the top-center bar
             const bar = document.querySelector('.top-center-bar');
             if (bar) {
                 const barRect = bar.getBoundingClientRect();
-                // Safety cap to avoid pathological loops
                 let removed = 0;
                 while (out.firstChild && removed < 1000) {
                     const first = out.firstChild;
                     const rect = first.getBoundingClientRect();
-                    // If the bottom of the first child is above the bottom of the bar,
-                    // it is visually above the strip and should be removed.
                     if (rect.bottom < barRect.bottom) {
                         out.removeChild(first);
                         removed++;
@@ -134,12 +106,10 @@ class RetroTerminal {
                 return;
             }
 
-            // Fallback: simple max-lines trimming
             while (out.children.length > maxLines) {
                 out.removeChild(out.firstChild);
             }
         } catch (e) {
-            // ignore trimming errors
         }
     }
 
@@ -163,14 +133,11 @@ class RetroTerminal {
         const input = this.terminalInput.value.trim().toLowerCase();
         if (!input) return;
 
-        // Find matching commands
         const matches = this.allCommands.filter(cmd => cmd.startsWith(input));
         
         if (matches.length === 1) {
-            // Single match: autocomplete
             this.terminalInput.value = matches[0];
         } else if (matches.length > 1) {
-            // Multiple matches: show suggestions
             this.addOutputLine(`Suggestions: ${matches.join(', ')}`, 'info-text');
         }
     }
@@ -192,20 +159,16 @@ class RetroTerminal {
     }
 
     updateCursor() {
-        // Position a block cursor to match the caret location inside the input
         try {
             const input = this.terminalInput;
             const cursorEl = document.getElementById('cursor');
-            const lineContainer = input.parentElement; // .terminal-input-line
+            const lineContainer = input.parentElement;
             if (!cursorEl || !lineContainer) return;
-
-            // Ensure mirror element exists for measuring text width
             if (!this._caretMirror) {
                 this._caretMirror = document.createElement('span');
                 this._caretMirror.style.position = 'absolute';
                 this._caretMirror.style.visibility = 'hidden';
                 this._caretMirror.style.whiteSpace = 'pre';
-                // match input font
                 const cs = window.getComputedStyle(input);
                 this._caretMirror.style.fontFamily = cs.fontFamily;
                 this._caretMirror.style.fontSize = cs.fontSize;
@@ -218,14 +181,11 @@ class RetroTerminal {
             this._caretMirror.textContent = before;
 
             const mirrorWidth = this._caretMirror.offsetWidth;
-            // Compute left position relative to the line container using input's offset
             const inputLeft = input.offsetLeft || 0;
-            const left = inputLeft + mirrorWidth + 4; // small gap
-
-            // vertical center the cursor to the input
+            const left = inputLeft + mirrorWidth + 4;
             const inputRect = input.getBoundingClientRect();
             const parentRect = lineContainer.getBoundingClientRect();
-            const top = input.offsetTop; // relative to container
+            const top = input.offsetTop;
 
             cursorEl.style.left = `${left}px`;
             cursorEl.style.top = `${top + 2}px`;
@@ -234,55 +194,29 @@ class RetroTerminal {
             cursorEl.style.opacity = '1';
             cursorEl.style.display = 'block';
         } catch (err) {
-            // fail silently
         }
     }
 
     updateDateTime() {
         try {
-            // Ensure a top-center bar exists containing the title and datetime
             let bar = document.querySelector('.top-center-bar');
-            if (!bar) {
-                bar = document.createElement('div');
-                bar.className = 'top-center-bar';
-                // Insert at top of body so it's on top of other content
-                document.body.appendChild(bar);
-            }
-
+            if (!bar) { bar = document.createElement('div'); bar.className = 'top-center-bar'; document.body.appendChild(bar); }
             const now = new Date();
             const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
             const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
             const dateStr = now.toLocaleDateString(undefined, dateOptions);
             const timeStr = now.toLocaleTimeString(undefined, timeOptions);
-
-            // Keep the title and datetime on the same line and matching style
             bar.innerHTML = `<span class="datetime-display">${dateStr} ${timeStr}</span>`;
-        } catch (err) {
-            // ignore errors updating date/time
-        }
+        } catch (err) { }
     }
 
     processCommand() {
         const command = this.terminalInput.value.trim().toLowerCase();
-        
-        if (command === '') {
-            this.addOutputLine('', 'prompt');
-            return;
-        }
-
-        // Add command to history
-        this.commandHistory.push(command);
-        this.historyIndex = -1;
-
-        // Display command
+        if (command === '') { this.addOutputLine('', 'prompt'); return; }
+        this.commandHistory.push(command); this.historyIndex = -1;
         this.addOutputLine(`sudo@rivsportfolio:~$ ${command}`, 'prompt');
-
-        // Process command
         this.executeCommand(command);
-
-        // Clear input
-        this.terminalInput.value = '';
-        this.terminalInput.focus();
+        this.terminalInput.value = ''; this.terminalInput.focus();
     }
 
     executeCommand(command) {
@@ -346,28 +280,18 @@ class RetroTerminal {
     }
 
     addOutputLine(text, className = '') {
-        // Trim output before adding new lines so the input stays visible
         try { this.trimOutput(200); } catch (e) {}
-
-        const line = document.createElement('div');
-        line.className = `terminal-line ${className}`;
-        this.terminalOutput.appendChild(line);
-        
-        // Type out the text character by character
+        const line = document.createElement('div'); line.className = `terminal-line ${className}`; this.terminalOutput.appendChild(line);
         let charIndex = 0;
         const typeCharacter = () => {
             if (charIndex < text.length) {
-                line.innerHTML += text[charIndex];
-                charIndex++;
-                // keep terminal scrolled while typing
+                line.innerHTML += text[charIndex++];
                 try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
                 try { this.ensurePromptVisible(); } catch (e) {}
                 setTimeout(typeCharacter, this.typingSpeed);
             }
         };
-        
         typeCharacter();
-        // ensure scroll after adding the line (in case text is empty)
         try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
         try { this.ensurePromptVisible(); } catch (e) {}
     }
@@ -380,7 +304,7 @@ class RetroTerminal {
             { name: 'skills', desc: 'what I can do' },
             { name: 'contact', desc: 'contact me' },
             { name: 'quote', desc: 'wisdom' },
-            { name: 'surprise', desc: 'dont use this one' },
+            { name: 'surprise', desc: 'it' },
             { name: 'neo', desc: 'what movie is that from??' },
             { name: 'color [scheme]', desc: 'switch color scheme' },
             { name: 'theme [name]', desc: 'switch terminal theme' },
@@ -426,7 +350,6 @@ class RetroTerminal {
     }
 
     showProjects() {
-        // Persist projects on the instance so added technologies persist while the page is open
         if (!this._projects) {
             this._projects = [
                 {
@@ -462,7 +385,6 @@ class RetroTerminal {
             ];
         }
 
-        // Render projects with read-only technology tags (no add/remove by viewers)
         this.createWindow('Projects', () => {
             let html = '<div class="projects-grid">';
             this._projects.forEach((project, idx) => {
@@ -513,7 +435,6 @@ class RetroTerminal {
     }
 
     showContact() {
-        // Render contact links instead of a form. Replace placeholders with your real info.
         this.createWindow('Contact', () => {
             return `
                 <div class="contact-links">
@@ -583,7 +504,6 @@ class RetroTerminal {
 
         this.addOutputLine('These are real words I promise', 'info-text');
 
-        // Stop neo on next command or after 30 seconds
         setTimeout(() => {
             this.stopneo();
         }, 8000);
@@ -637,11 +557,10 @@ class RetroTerminal {
 
     switchTheme(theme, silent = false) {
         const themes = {
-            // default uses CSS background-image; keep background transparent so image remains visible
             'default': { bg: 'transparent', text: '#00ff88' },
             'amber': { bg: '#1a1a0a', text: '#ffb000' },
             'monochrome': { bg: '#0f0f0f', text: '#cccccc' },
-            'dos': { bg: '#0000aa', text: '#00ff00' }
+            'ms dos': { bg: '#0000aa', text: '#00ff00' }
         };
 
         if (!themes[theme]) {
@@ -654,7 +573,6 @@ class RetroTerminal {
         const container = document.getElementById('terminalContainer');
         
         if (container) {
-            // For default theme we remove any inline background so the CSS background-image can show
             if (theme === 'default') {
                 container.style.backgroundColor = '';
             } else {
@@ -678,16 +596,14 @@ class RetroTerminal {
         this.addOutputLine('Available themes: default, amber, monochrome, dos', 'info-text');
     }
 
-    // --- Mini Games -------------------------------------------------
     startSnakeGame() {
-        // Create a game window with a canvas
         this.createWindow('Snake', () => {
             return `<div class="game-container"><canvas id="snakeCanvas" width="400" height="400" tabindex="0" style="outline:none;"></canvas><div class="game-instructions">Use arrow keys to move. Close window to stop.</div></div>`;
         }, () => {
             const canvas = document.getElementById('snakeCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            const size = 20; // cell size
+            const size = 20;
             const cols = Math.floor(canvas.width / size);
             const rows = Math.floor(canvas.height / size);
 
@@ -719,7 +635,7 @@ class RetroTerminal {
             canvas.addEventListener('keydown', keyHandler);
 
             let last = 0;
-            const speed = 8; // moves per second
+            const speed = 8;
 
             const frame = (t) => {
                 if (!running) return;
@@ -727,12 +643,9 @@ class RetroTerminal {
                 if (t - last < 1000 / speed) { requestAnimationFrame(frame); return; }
                 last = t;
 
-                // move
                 if (dir.x !== 0 || dir.y !== 0) {
                     const head = { x: (snake[0].x + dir.x + cols) % cols, y: (snake[0].y + dir.y + rows) % rows };
-                    // collision with self
                     if (snake.some(s => s.x === head.x && s.y === head.y)) {
-                        // game over
                         this.addOutputLine('Snake game: Game Over', 'error-text');
                         running = false;
                         canvas.removeEventListener('keydown', keyHandler);
@@ -746,15 +659,12 @@ class RetroTerminal {
                     }
                 }
 
-                // draw
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0,0,canvas.width,canvas.height);
-                // food
                 if (food) {
                     ctx.fillStyle = '#ff3';
                     ctx.fillRect(food.x*size, food.y*size, size, size);
                 }
-                // snake
                 ctx.fillStyle = '#0f0';
                 snake.forEach((s, i) => {
                     ctx.fillStyle = i===0 ? '#0ff' : '#0f0';
@@ -775,7 +685,7 @@ class RetroTerminal {
             const canvas = document.getElementById('pongCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            const pw = 10, ph = 60; // paddle w/h
+            const pw = 10, ph = 60;
             const ballSize = 8;
             let playerY = (canvas.height - ph) / 2;
             let aiY = (canvas.height - ph) / 2;
@@ -791,38 +701,28 @@ class RetroTerminal {
             const step = () => {
                 if (!running) return;
                 if (!document.body.contains(canvas)) { running = false; window.removeEventListener('keydown', keyHandler); window.removeEventListener('keyup', keyHandler); return; }
-                // player
                 if (keyState['w'] || keyState['ArrowUp']) playerY -= 6;
                 if (keyState['s'] || keyState['ArrowDown']) playerY += 6;
                 playerY = Math.max(0, Math.min(canvas.height - ph, playerY));
 
-                // simple AI: follow ball
                 const centerAI = aiY + ph/2;
                 if (centerAI < ball.y - 10) aiY += 4; else if (centerAI > ball.y + 10) aiY -= 4;
                 aiY = Math.max(0, Math.min(canvas.height - ph, aiY));
 
-                // ball
                 ball.x += ball.vx; ball.y += ball.vy;
                 if (ball.y <= 0 || ball.y >= canvas.height - ballSize) ball.vy *= -1;
 
-                // paddle collisions
                 if (ball.x <= pw && ball.y + ballSize >= playerY && ball.y <= playerY + ph) { ball.vx = Math.abs(ball.vx); ball.vx *= 1.05; }
                 if (ball.x + ballSize >= canvas.width - pw && ball.y + ballSize >= aiY && ball.y <= aiY + ph) { ball.vx = -Math.abs(ball.vx); ball.vx *= 1.03; }
 
-                // score
                 if (ball.x < -50) { aiScore++; ball.x = canvas.width/2; ball.y = canvas.height/2; ball.vx = 4; ball.vy = 2*(Math.random()>0.5?1:-1); }
                 if (ball.x > canvas.width + 50) { playerScore++; ball.x = canvas.width/2; ball.y = canvas.height/2; ball.vx = -4; ball.vy = 2*(Math.random()>0.5?1:-1); }
 
-                // draw
                 ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
-                // net
                 ctx.fillStyle = '#444'; for (let y=0;y<canvas.height;y+=20) ctx.fillRect(canvas.width/2-1, y, 2, 10);
-                // paddles
                 ctx.fillStyle = '#0f0'; ctx.fillRect(0, playerY, pw, ph);
                 ctx.fillStyle = '#f00'; ctx.fillRect(canvas.width-pw, aiY, pw, ph);
-                // ball
                 ctx.fillStyle = '#fff'; ctx.fillRect(ball.x, ball.y, ballSize, ballSize);
-                // scores
                 ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.fillText(playerScore, canvas.width/2 - 40, 30); ctx.fillText(aiScore, canvas.width/2 + 20, 30);
 
                 if (playerScore >= 5 || aiScore >= 5) {
@@ -847,7 +747,6 @@ class RetroTerminal {
         window.id = windowId;
         window.style.zIndex = ++this.windowZIndex;
         
-        // Random initial position
         const maxX = window.innerWidth - 600;
         const maxY = window.innerHeight - 400;
         const initialLeft = Math.max(50, Math.min(Math.random() * Math.max(0, maxX) + 50, maxX));
@@ -874,10 +773,8 @@ class RetroTerminal {
         this.windows.push(window);
         this.focusWindow(window);
 
-        // Make window draggable
         this.makeDraggable(window);
 
-        // Window controls
         const closeBtn = window.querySelector('.window-btn.close');
         const minimizeBtn = window.querySelector('.window-btn.minimize');
         const maximizeBtn = window.querySelector('.window-btn.maximize');
@@ -897,15 +794,11 @@ class RetroTerminal {
             this.maximizeWindow(window);
         });
 
-        // Call onMount callback if provided
         if (onMount) {
             setTimeout(() => onMount(), 0);
         }
 
-        // If allowed, check whether too many windows are open and show a transient warning
-        // `options.skipAutoWarning` can be set to true to avoid recursion when creating the warning itself
         if (!options.skipAutoWarning) {
-            // defer slightly so the DOM has applied styles/measurements
             setTimeout(() => this.maybeShowTooManyWindowsWarning(), 10);
         }
 
@@ -913,9 +806,7 @@ class RetroTerminal {
     }
 
     maybeShowTooManyWindowsWarning() {
-        // Don't create multiple warnings
         const existing = this.windowsContainer.querySelector('.retro-window.transient-warning');
-        // Count only user windows (exclude transient warning windows)
         const userWindowCount = this.windows.filter(w => !w.classList.contains('transient-warning')).length;
 
         if (userWindowCount > 2 && !existing) {
@@ -923,21 +814,17 @@ class RetroTerminal {
                 return `<div class="warning-content">It doesn't really matter or anything but still</div>`;
             }, null, { skipAutoWarning: true });
 
-            // Mark as transient so it won't trigger more warnings
             warningWindow.classList.add('transient-warning');
 
-            // Try to center near top for visibility
             setTimeout(() => {
                 try {
                     const w = warningWindow.offsetWidth || 360;
                     warningWindow.style.left = `${Math.max(20, (window.innerWidth - w) / 2)}px`;
                     warningWindow.style.top = `80px`;
                 } catch (e) {
-                    // ignore positioning errors
                 }
             }, 0);
 
-            // Auto-dismiss after 3 seconds
             setTimeout(() => {
                 this.closeWindow(warningWindow);
             }, 5000);
@@ -960,19 +847,13 @@ class RetroTerminal {
             const tagName = element.tagName.toLowerCase();
             const interactiveTags = ['input', 'textarea', 'button', 'a', 'select'];
             if (interactiveTags.includes(tagName)) return true;
-            // Check if element is inside a form input
             if (element.closest('input, textarea, button, select')) return true;
             return false;
         };
 
         const startDrag = (e) => {
-            // Don't drag if clicking on window control buttons
             if (e.target && e.target.classList.contains('window-btn')) return;
-            
-            // Don't drag if clicking directly on interactive elements
             if (isInteractiveElement(e.target)) return;
-            
-            // Don't drag if clicking on labels (they should trigger their inputs)
             if (e.target && e.target.tagName === 'LABEL') return;
             
             isDragging = true;
@@ -1002,7 +883,6 @@ class RetroTerminal {
             let newX = initialX + deltaX;
             let newY = initialY + deltaY;
             
-            // Constrain to viewport
             const maxX = window.innerWidth - windowElement.offsetWidth;
             const maxY = window.innerHeight - windowElement.offsetHeight;
             
@@ -1023,22 +903,18 @@ class RetroTerminal {
             }
         };
 
-        // Make header draggable - always works
         header.addEventListener('mousedown', (e) => {
             if (!e.target.classList.contains('window-btn')) {
                 startDrag(e);
             }
         });
         
-        // Make window content draggable (but not interactive elements)
         content.addEventListener('mousedown', (e) => {
-            // Only start drag if not clicking on interactive elements
             if (!isInteractiveElement(e.target) && e.target.tagName !== 'LABEL') {
                 startDrag(e);
             }
         });
 
-        // Touch support for mobile
         const handleTouchStart = (e) => {
             if (e.target.classList.contains('window-btn')) return;
             if (isInteractiveElement(e.target)) return;
@@ -1057,7 +933,6 @@ class RetroTerminal {
         header.addEventListener('touchstart', handleTouchStart, { passive: false });
         content.addEventListener('touchstart', handleTouchStart, { passive: false });
 
-        // Global event listeners - use capture phase to ensure we catch events
         document.addEventListener('mousemove', drag, true);
         document.addEventListener('mouseup', stopDrag, true);
         document.addEventListener('touchmove', (e) => {
@@ -1074,10 +949,7 @@ class RetroTerminal {
     }
 
     focusWindow(window) {
-        // Remove focus from all windows
         this.windows.forEach(w => w.classList.remove('focused'));
-        
-        // Focus this window
         window.classList.add('focused');
         window.style.zIndex = ++this.windowZIndex;
         this.currentWindow = window;
@@ -1096,13 +968,11 @@ class RetroTerminal {
         const isMinimized = window.dataset.minimized === 'true';
         
         if (isMinimized) {
-            // Restore window
             window.dataset.minimized = 'false';
             window.style.display = 'flex';
             this.focusWindow(window);
             this.removeFromTaskbar(window.id);
         } else {
-            // Minimize window
             window.dataset.minimized = 'true';
             window.style.display = 'none';
             this.addToTaskbar(window.id, title);
@@ -1113,7 +983,6 @@ class RetroTerminal {
         const taskbar = document.getElementById('taskbar');
         if (!taskbar) return;
 
-        // Check if already in taskbar
         if (document.getElementById(`taskbar-btn-${windowId}`)) return;
 
         const btn = document.createElement('button');
@@ -1164,18 +1033,15 @@ class RetroTerminal {
 
 }
 
-// Simple retro boot / initialization sequence. Calls `onComplete` when finished.
 function startBootSequence(onComplete) {
     try {
         const terminalOutput = document.getElementById('terminalOutput');
 
-        // Two boot messages: preparing and installing a package
         const messages = [
             "Preparing package ...",
             "Installing package..."
         ];
 
-        // Helper to type text into a given element
         const typeIntoElement = (el, text, charDelay = 18, cb) => {
             let i = 0;
             const tick = () => {
@@ -1194,7 +1060,6 @@ function startBootSequence(onComplete) {
 
         const next = () => {
             if (idx >= messages.length) {
-                // finished, call onComplete shortly
                 setTimeout(() => { if (typeof onComplete === 'function') onComplete(); }, 200);
                 return;
             }
@@ -1206,17 +1071,13 @@ function startBootSequence(onComplete) {
                 line.className = 'terminal-line boot-line';
                 terminalOutput.appendChild(line);
 
-                // For the second message (install), after the header we simulate a quick install progress
                 if (idx === 1) {
-                    // Type the install header quickly
                     typeIntoElement(line, msg + ': ', 14, () => {
-                        // simulate progress with a few random '====' lines and percentages
-                        const steps = Math.floor(Math.random() * 4) + 3; // 3-6 steps
+                        const steps = Math.floor(Math.random() * 4) + 3;
                         let step = 0;
 
                         const progressNext = () => {
                             if (step >= steps) {
-                                // final success line
                                 const okLine = document.createElement('div');
                                 okLine.className = 'terminal-line boot-divider';
                                 okLine.textContent = 'Done.';
@@ -1233,10 +1094,8 @@ function startBootSequence(onComplete) {
                                 return;
                             }
 
-                            // create a progress line similar to Arduino upload output
                             const progressLine = document.createElement('div');
                             progressLine.className = 'terminal-line boot-progress';
-                            // random amount of '=' between 8 and 36 to look varied
                             const percent = Math.min(99, Math.round(((step + 1) / steps) * 100));
                             const randBetween = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
                             let eqCount;
@@ -1262,21 +1121,17 @@ function startBootSequence(onComplete) {
                                 }
                             } catch (e) {}
 
-                            // small randomized delay so whole boot < 5s
-                            const delayBetween = 80 + Math.floor(Math.random() * 140); // 80-220ms
+                            const delayBetween = 80 + Math.floor(Math.random() * 140);
                             step++;
                             setTimeout(progressNext, delayBetween);
                         };
 
-                        // start progress
                         setTimeout(progressNext, 120);
                     });
                 } else {
-                    // Regular short message
                     typeIntoElement(line, msg, 18, () => {
                         const divLine = document.createElement('div');
                         divLine.className = 'terminal-line boot-divider';
-                        // small random divider to mimic device output
                         divLine.textContent = '='.repeat(Math.floor(Math.random() * 6) + 3);
                         terminalOutput.appendChild(divLine);
                         terminalOutput.scrollTop = terminalOutput.scrollHeight;
@@ -1291,7 +1146,6 @@ function startBootSequence(onComplete) {
                     });
                 }
             } else {
-                // fallback overlay: type quickly and finish
                 const containerId = 'boot-sequence-container';
                 let container = document.getElementById(containerId);
                 if (!container) {
@@ -1328,16 +1182,11 @@ function startBootSequence(onComplete) {
     }
 }
 
-// Initialize terminal when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Each page load: ask whether the ASCII art hurts the user's eyes.
-    // If they choose to hide it, replace the ASCII block with a plain text
-    // title for this load only (no persistence).
     try {
         const asciiEl = document.querySelector('.terminal-line.ascii-art');
         const asciiModal = document.getElementById('asciiModal');
         if (asciiModal) {
-            // show ASCII modal
             asciiModal.classList.add('visible');
             asciiModal.setAttribute('aria-hidden', 'false');
 
@@ -1347,7 +1196,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const closeAsciiModal = () => {
                 asciiModal.classList.remove('visible');
                 asciiModal.setAttribute('aria-hidden', 'true');
-                // Initialize terminal after ASCII modal closes (with boot)
                 startBootSequence(() => new RetroTerminal());
             };
 
@@ -1360,31 +1208,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeAsciiModal();
             });
         } else {
-            // If no ASCII modal, run boot sequence then initialize terminal
             startBootSequence(() => new RetroTerminal());
         }
     } catch (e) {
-        // ignore if DOM not found, just initialize terminal
         startBootSequence(() => new RetroTerminal());
     }
 });
 
-// JavaScript to restart animation every 11 seconds (6s animation + 5s wait)
 const line = document.querySelector('.horizontal-sweep-line');
 
 function restartAnimation() {
-    // Reset animation
     line.style.animation = 'none';
-    line.offsetHeight; // Trigger reflow
+    line.offsetHeight;
     line.style.animation = 'sweepDown 6s linear forwards';
     
-    // Schedule next animation
     setTimeout(() => {
         line.style.animationDelay = '0s';
         restartAnimation();
-    }, 11000); // 6s animation + 5s wait
+    }, 11000);
 }
 
-// Start the cycle
 restartAnimation();
-
