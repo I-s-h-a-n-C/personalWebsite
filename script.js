@@ -272,7 +272,7 @@ class RetroTerminal {
                 break;
             case 'exit':
             case 'quit':
-                this.addOutputLine('Session cannot be closed. Type "help" for what can be used', 'error-text');
+                this.addOutputLine('nah', 'error-text');
                 break;
             default:
                 this.addOutputLine(`${cmd}? What do you mean? Use "help" for what can be used.`, 'error-text');
@@ -304,13 +304,14 @@ class RetroTerminal {
             { name: 'skills', desc: 'what I can do' },
             { name: 'contact', desc: 'contact me' },
             { name: 'quote', desc: 'wisdom' },
-            { name: 'surprise', desc: 'it' },
+            { name: 'surprise', desc: 'who knows' },
             { name: 'neo', desc: 'what movie is that from??' },
             { name: 'color [scheme]', desc: 'switch color scheme' },
             { name: 'theme [name]', desc: 'switch terminal theme' },
             { name: 'clear', desc: 'clear terminal' },
             { name: 'snake', desc: 'play a fun lil game' },
-            { name: 'pong', desc: 'not of the ping variety' }
+            { name: 'pong', desc: 'not of the ping variety' },
+            { name: 'exit', desc: 'self explanatory' }
         ];
 
         this.createWindow('Help', () => {
@@ -338,7 +339,7 @@ class RetroTerminal {
                     </div>
                     <div class="about-section">
                         <h3>WHAT I DO</h3>
-                        <p>Primarily specializing in ESP32 projects, and I have made some PCBs as well.</p>
+                        <p>Primarily specializing in ESP32 projects, and I have made some PCBs as well. I also like making websites. I am not technically full stack, but I am pretty good with Firebase.</p>
                     </div>
                     <div class="about-section">
                         <h3>MY INTERESTS</h3>
@@ -596,6 +597,26 @@ class RetroTerminal {
         this.addOutputLine('Available themes: default, amber, monochrome, dos', 'info-text');
     }
 
+
+    formatTitleAsFile(title) {
+        try {
+            const t = String(title || 'file').trim();
+            const slug = t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            const lower = t.toLowerCase();
+            let ext = '.exe';
+            if (lower.includes('snake') || lower.includes('pong') || lower.includes('.rom') || lower.includes('game')) {
+                ext = '.rom';
+            } else if (lower.includes('about') || lower === 'about me' || slug === 'about-me') {
+                ext = '.txt';
+            } else {
+                ext = '.exe';
+            }
+            return `${slug}${ext}`;
+        } catch (e) {
+            return title;
+        }
+    }
+
     startSnakeGame() {
         this.createWindow('Snake', () => {
             return `<div class="game-container"><canvas id="snakeCanvas" width="400" height="400" tabindex="0" style="outline:none;"></canvas><div class="game-instructions">Use arrow keys to move. Close window to stop.</div></div>`;
@@ -727,7 +748,7 @@ class RetroTerminal {
 
                 if (playerScore >= 5 || aiScore >= 5) {
                     running = false;
-                    const winner = playerScore >=5 ? 'Player' : 'Computer';
+                    const winner = playerScore >=5 ? 'Player' : 'Terminal';
                     this.addOutputLine(`Pong finished: ${winner} wins (${playerScore}-${aiScore})`, 'success-text');
                     window.removeEventListener('keydown', keyHandler); window.removeEventListener('keyup', keyHandler);
                     return;
@@ -771,6 +792,17 @@ class RetroTerminal {
 
         this.windowsContainer.appendChild(window);
         this.windows.push(window);
+
+        // Display the window title as a playful filename (e.g. help.txt, about-me.pdf)
+        try {
+            const titleEl = window.querySelector('.window-title');
+            if (titleEl) {
+                const fileTitle = this.formatTitleAsFile(title);
+                titleEl.textContent = fileTitle;
+                window.dataset.fileName = fileTitle;
+            }
+        } catch (e) {}
+
         this.focusWindow(window);
 
         this.makeDraggable(window);
