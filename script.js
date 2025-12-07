@@ -14,7 +14,7 @@ class RetroTerminal {
         this.terminalTheme = 'default'; // Current terminal theme
         this.typingSpeed = 30; // ms per character for typing animation
         this.minimizedWindows = []; // Track minimized windows
-        this.allCommands = ['help', 'about', 'projects', 'skills', 'contact', 'quote', 'surprise', 'neo', 'color', 'theme', 'clear', 'exit', 'quit'];
+        this.allCommands = ['help', 'about', 'projects', 'skills', 'contact', 'quote', 'surprise', 'neo', 'color', 'theme', 'clear', 'exit', 'quit', 'snake', 'pong'];
         
         this.init();
     }
@@ -313,6 +313,12 @@ class RetroTerminal {
             case 'neo':
                 this.startneo();
                 break;
+            case 'snake':
+                this.startSnakeGame();
+                break;
+            case 'pong':
+                this.startPongGame();
+                break;
             case 'theme':
                 if (args.length > 0) {
                     this.switchTheme(args[0]);
@@ -378,7 +384,9 @@ class RetroTerminal {
             { name: 'neo', desc: 'what movie is that from??' },
             { name: 'color [scheme]', desc: 'switch color scheme' },
             { name: 'theme [name]', desc: 'switch terminal theme' },
-            { name: 'clear', desc: 'clear terminal' }
+            { name: 'clear', desc: 'clear terminal' },
+            { name: 'snake', desc: 'play a fun lil game' },
+            { name: 'pong', desc: 'not of the ping variety' }
         ];
 
         this.createWindow('Help', () => {
@@ -668,6 +676,168 @@ class RetroTerminal {
     showThemeOptions() {
         this.addOutputLine('Usage: theme [name]', 'info-text');
         this.addOutputLine('Available themes: default, amber, monochrome, dos', 'info-text');
+    }
+
+    // --- Mini Games -------------------------------------------------
+    startSnakeGame() {
+        // Create a game window with a canvas
+        this.createWindow('Snake', () => {
+            return `<div class="game-container"><canvas id="snakeCanvas" width="400" height="400" tabindex="0" style="outline:none;"></canvas><div class="game-instructions">Use arrow keys to move. Close window to stop.</div></div>`;
+        }, () => {
+            const canvas = document.getElementById('snakeCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const size = 20; // cell size
+            const cols = Math.floor(canvas.width / size);
+            const rows = Math.floor(canvas.height / size);
+
+            let snake = [{ x: Math.floor(cols/2), y: Math.floor(rows/2) }];
+            let dir = { x: 0, y: 0 };
+            let food = null;
+            let running = true;
+
+            const placeFood = () => {
+                while (true) {
+                    const fx = Math.floor(Math.random() * cols);
+                    const fy = Math.floor(Math.random() * rows);
+                    if (!snake.some(s => s.x === fx && s.y === fy)) {
+                        food = { x: fx, y: fy };
+                        break;
+                    }
+                }
+            };
+
+            const keyHandler = (e) => {
+                if (e.key === 'ArrowUp' && dir.y === 0) { dir = { x: 0, y: -1 }; }
+                if (e.key === 'ArrowDown' && dir.y === 0) { dir = { x: 0, y: 1 }; }
+                if (e.key === 'ArrowLeft' && dir.x === 0) { dir = { x: -1, y: 0 }; }
+                if (e.key === 'ArrowRight' && dir.x === 0) { dir = { x: 1, y: 0 }; }
+            };
+
+            placeFood();
+            canvas.focus();
+            canvas.addEventListener('keydown', keyHandler);
+
+            let last = 0;
+            const speed = 8; // moves per second
+
+            const frame = (t) => {
+                if (!running) return;
+                if (!document.body.contains(canvas)) { running = false; canvas.removeEventListener('keydown', keyHandler); return; }
+                if (t - last < 1000 / speed) { requestAnimationFrame(frame); return; }
+                last = t;
+
+                // move
+                if (dir.x !== 0 || dir.y !== 0) {
+                    const head = { x: (snake[0].x + dir.x + cols) % cols, y: (snake[0].y + dir.y + rows) % rows };
+                    // collision with self
+                    if (snake.some(s => s.x === head.x && s.y === head.y)) {
+                        // game over
+                        this.addOutputLine('Snake game: Game Over', 'error-text');
+                        running = false;
+                        canvas.removeEventListener('keydown', keyHandler);
+                        return;
+                    }
+                    snake.unshift(head);
+                    if (food && head.x === food.x && head.y === food.y) {
+                        placeFood();
+                    } else {
+                        snake.pop();
+                    }
+                }
+
+                // draw
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0,0,canvas.width,canvas.height);
+                // food
+                if (food) {
+                    ctx.fillStyle = '#ff3';
+                    ctx.fillRect(food.x*size, food.y*size, size, size);
+                }
+                // snake
+                ctx.fillStyle = '#0f0';
+                snake.forEach((s, i) => {
+                    ctx.fillStyle = i===0 ? '#0ff' : '#0f0';
+                    ctx.fillRect(s.x*size+1, s.y*size+1, size-2, size-2);
+                });
+
+                requestAnimationFrame(frame);
+            };
+
+            requestAnimationFrame(frame);
+        });
+    }
+
+    startPongGame() {
+        this.createWindow('Pong', () => {
+            return `<div class="game-container"><canvas id="pongCanvas" width="500" height="300" tabindex="0" style="outline:none;"></canvas><div class="game-instructions">W/S or ArrowUp/Down to move. First to 5 wins. Close window to stop.</div></div>`;
+        }, () => {
+            const canvas = document.getElementById('pongCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const pw = 10, ph = 60; // paddle w/h
+            const ballSize = 8;
+            let playerY = (canvas.height - ph) / 2;
+            let aiY = (canvas.height - ph) / 2;
+            let ball = { x: canvas.width/2, y: canvas.height/2, vx: 4*(Math.random()>0.5?1:-1), vy: 2*(Math.random()>0.5?1:-1) };
+            let playerScore = 0, aiScore = 0;
+            let running = true;
+
+            const keyState = {};
+            const keyHandler = (e) => { if (e.type === 'keydown') keyState[e.key] = true; else keyState[e.key] = false; };
+            window.addEventListener('keydown', keyHandler); window.addEventListener('keyup', keyHandler);
+            canvas.focus();
+
+            const step = () => {
+                if (!running) return;
+                if (!document.body.contains(canvas)) { running = false; window.removeEventListener('keydown', keyHandler); window.removeEventListener('keyup', keyHandler); return; }
+                // player
+                if (keyState['w'] || keyState['ArrowUp']) playerY -= 6;
+                if (keyState['s'] || keyState['ArrowDown']) playerY += 6;
+                playerY = Math.max(0, Math.min(canvas.height - ph, playerY));
+
+                // simple AI: follow ball
+                const centerAI = aiY + ph/2;
+                if (centerAI < ball.y - 10) aiY += 4; else if (centerAI > ball.y + 10) aiY -= 4;
+                aiY = Math.max(0, Math.min(canvas.height - ph, aiY));
+
+                // ball
+                ball.x += ball.vx; ball.y += ball.vy;
+                if (ball.y <= 0 || ball.y >= canvas.height - ballSize) ball.vy *= -1;
+
+                // paddle collisions
+                if (ball.x <= pw && ball.y + ballSize >= playerY && ball.y <= playerY + ph) { ball.vx = Math.abs(ball.vx); ball.vx *= 1.05; }
+                if (ball.x + ballSize >= canvas.width - pw && ball.y + ballSize >= aiY && ball.y <= aiY + ph) { ball.vx = -Math.abs(ball.vx); ball.vx *= 1.03; }
+
+                // score
+                if (ball.x < -50) { aiScore++; ball.x = canvas.width/2; ball.y = canvas.height/2; ball.vx = 4; ball.vy = 2*(Math.random()>0.5?1:-1); }
+                if (ball.x > canvas.width + 50) { playerScore++; ball.x = canvas.width/2; ball.y = canvas.height/2; ball.vx = -4; ball.vy = 2*(Math.random()>0.5?1:-1); }
+
+                // draw
+                ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                // net
+                ctx.fillStyle = '#444'; for (let y=0;y<canvas.height;y+=20) ctx.fillRect(canvas.width/2-1, y, 2, 10);
+                // paddles
+                ctx.fillStyle = '#0f0'; ctx.fillRect(0, playerY, pw, ph);
+                ctx.fillStyle = '#f00'; ctx.fillRect(canvas.width-pw, aiY, pw, ph);
+                // ball
+                ctx.fillStyle = '#fff'; ctx.fillRect(ball.x, ball.y, ballSize, ballSize);
+                // scores
+                ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.fillText(playerScore, canvas.width/2 - 40, 30); ctx.fillText(aiScore, canvas.width/2 + 20, 30);
+
+                if (playerScore >= 5 || aiScore >= 5) {
+                    running = false;
+                    const winner = playerScore >=5 ? 'Player' : 'Computer';
+                    this.addOutputLine(`Pong finished: ${winner} wins (${playerScore}-${aiScore})`, 'success-text');
+                    window.removeEventListener('keydown', keyHandler); window.removeEventListener('keyup', keyHandler);
+                    return;
+                }
+
+                requestAnimationFrame(step);
+            };
+
+            requestAnimationFrame(step);
+        });
     }
 
     createWindow(title, contentGenerator, onMount = null, options = {}) {
@@ -1001,8 +1171,8 @@ function startBootSequence(onComplete) {
 
         // Two boot messages: preparing and installing a package
         const messages = [
-            "Preparing package 'rivs-utils'...",
-            "Installing package 'rivs-utils'"
+            "Preparing package ...",
+            "Installing package..."
         ];
 
         // Helper to type text into a given element
