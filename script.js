@@ -24,8 +24,7 @@ class RetroTerminal {
         this.terminalInput.addEventListener('keyup', () => this.updateCursor());
         this.terminalInput.addEventListener('focus', () => this.updateCursor());
         this.terminalInput.addEventListener('blur', () => {
-            const cursorEl = document.getElementById('cursor');
-            if (cursorEl) cursorEl.style.opacity = '0';
+            // caret element removed — nothing to do on blur
         });
 
         document.getElementById('terminalContainer').addEventListener('click', () => {
@@ -61,6 +60,37 @@ class RetroTerminal {
                 } catch (err) { this.terminalInput.focus(); }
             }
         }, true);
+
+        // Allow typing anywhere on the page without clicking the input.
+        // If a printable key is pressed while not editing, focus the terminal input
+        // and insert that character so the user can start typing immediately.
+        document.addEventListener('keydown', (e) => {
+            const active = document.activeElement;
+            const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+            if (isEditing) return; // don't steal focus when user is in a form
+
+            // Ignore modifier-only keys and special combos
+            if (e.ctrlKey || e.metaKey) return;
+
+            // If key is a single printable character, focus the input and insert it
+            if (e.key && e.key.length === 1 && !e.altKey) {
+                e.preventDefault();
+                try {
+                    this.terminalInput.focus();
+                    const start = this.terminalInput.selectionStart || 0;
+                    const val = this.terminalInput.value || '';
+                    this.terminalInput.value = val.slice(0, start) + e.key + val.slice(start);
+                    this.terminalInput.selectionStart = this.terminalInput.selectionEnd = start + 1;
+                    try { this.updateCursor(); } catch (err) {}
+                } catch (err) {
+                    // fallback: just focus
+                    try { this.terminalInput.focus(); } catch (e) {}
+                }
+            } else {
+                // For non-printable keys (Backspace, Enter etc.), just focus so they act on the input
+                try { this.terminalInput.focus(); } catch (e) {}
+            }
+        }, false);
 
         setTimeout(() => this.updateCursor(), 0);
     }
@@ -133,67 +163,15 @@ class RetroTerminal {
         const input = this.terminalInput.value.trim().toLowerCase();
         if (!input) return;
 
+        // Find matching commands
         const matches = this.allCommands.filter(cmd => cmd.startsWith(input));
         
         if (matches.length === 1) {
+            // Single match: autocomplete
             this.terminalInput.value = matches[0];
         } else if (matches.length > 1) {
+            // Multiple matches: show suggestions
             this.addOutputLine(`Suggestions: ${matches.join(', ')}`, 'info-text');
-        }
-    }
-
-    navigateHistory(direction) {
-        if (this.commandHistory.length === 0) return;
-        
-        this.historyIndex += direction;
-        
-        if (this.historyIndex < 0) {
-            this.historyIndex = 0;
-        } else if (this.historyIndex >= this.commandHistory.length) {
-            this.historyIndex = this.commandHistory.length;
-            this.terminalInput.value = '';
-            return;
-        }
-        
-        this.terminalInput.value = this.commandHistory[this.commandHistory.length - 1 - this.historyIndex];
-    }
-
-    updateCursor() {
-        try {
-            const input = this.terminalInput;
-            const cursorEl = document.getElementById('cursor');
-            const lineContainer = input.parentElement;
-            if (!cursorEl || !lineContainer) return;
-            if (!this._caretMirror) {
-                this._caretMirror = document.createElement('span');
-                this._caretMirror.style.position = 'absolute';
-                this._caretMirror.style.visibility = 'hidden';
-                this._caretMirror.style.whiteSpace = 'pre';
-                const cs = window.getComputedStyle(input);
-                this._caretMirror.style.fontFamily = cs.fontFamily;
-                this._caretMirror.style.fontSize = cs.fontSize;
-                this._caretMirror.style.letterSpacing = cs.letterSpacing;
-                lineContainer.appendChild(this._caretMirror);
-            }
-
-            const selStart = (typeof input.selectionStart === 'number') ? input.selectionStart : input.value.length;
-            const before = input.value.slice(0, selStart) || '';
-            this._caretMirror.textContent = before;
-
-            const mirrorWidth = this._caretMirror.offsetWidth;
-            const inputLeft = input.offsetLeft || 0;
-            const left = inputLeft + mirrorWidth + 4;
-            const inputRect = input.getBoundingClientRect();
-            const parentRect = lineContainer.getBoundingClientRect();
-            const top = input.offsetTop;
-
-            cursorEl.style.left = `${left}px`;
-            cursorEl.style.top = `${top + 2}px`;
-            cursorEl.style.height = `${input.offsetHeight - 4}px`;
-            cursorEl.style.zIndex = '5';
-            cursorEl.style.opacity = '1';
-            cursorEl.style.display = 'block';
-        } catch (err) {
         }
     }
 
