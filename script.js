@@ -177,14 +177,22 @@ class RetroTerminal {
 
     updateDateTime() {
         try {
-            let bar = document.querySelector('.top-center-bar');
-            if (!bar) { bar = document.createElement('div'); bar.className = 'top-center-bar'; document.body.appendChild(bar); }
             const now = new Date();
             const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
             const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
             const dateStr = now.toLocaleDateString(undefined, dateOptions);
             const timeStr = now.toLocaleTimeString(undefined, timeOptions);
-            bar.innerHTML = `<span class="datetime-display">${dateStr} ${timeStr}</span>`;
+
+            // Prefer the GNOME-like center bar if present
+            const center = document.getElementById('topCenterBar') || document.querySelector('.top-center-bar');
+            if (center) {
+                center.innerHTML = `<span class="datetime-display">${dateStr} ${timeStr}</span>`;
+            }
+
+            const gnomeClock = document.getElementById('gnomeClock');
+            if (gnomeClock) {
+                gnomeClock.textContent = timeStr;
+            }
         } catch (err) { }
     }
 
@@ -1196,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         const asciiEl = document.querySelector('.terminal-line.ascii-art');
         const asciiModal = document.getElementById('asciiModal');
-        if (asciiModal) {
+            if (asciiModal) {
             asciiModal.classList.add('visible');
             asciiModal.setAttribute('aria-hidden', 'false');
 
@@ -1206,7 +1214,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const closeAsciiModal = () => {
                 asciiModal.classList.remove('visible');
                 asciiModal.setAttribute('aria-hidden', 'true');
-                startBootSequence(() => new RetroTerminal());
+                startBootSequence(() => { window.retroTerminal = new RetroTerminal(); setupDock(); });
             };
 
             if (hideBtn) hideBtn.addEventListener('click', () => {
@@ -1218,12 +1226,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeAsciiModal();
             });
         } else {
-            startBootSequence(() => new RetroTerminal());
+            startBootSequence(() => { window.retroTerminal = new RetroTerminal(); setupDock(); });
         }
     } catch (e) {
-        startBootSequence(() => new RetroTerminal());
+        startBootSequence(() => { window.retroTerminal = new RetroTerminal(); setupDock(); });
     }
 });
+
+// When ASCII modal closes path
+function setupDock() {
+    try {
+        const dock = document.getElementById('dock');
+        if (!dock || !window.retroTerminal) return;
+
+        dock.querySelectorAll('.dock-icon').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const cmd = btn.getAttribute('data-cmd');
+                if (!cmd) return;
+                if (cmd === 'terminal') {
+                    // focus existing terminal input
+                    try { window.retroTerminal.terminalInput.focus(); } catch (err) {}
+                } else {
+                    try { window.retroTerminal.executeCommand(cmd); } catch (err) {}
+                }
+            });
+        });
+
+        // Launcher toggle button
+        const launcherBtn = document.getElementById('launcherBtn');
+        const launcherMenu = document.getElementById('launcherMenu');
+        if (launcherBtn && launcherMenu) {
+            launcherBtn.addEventListener('click', (e) => {
+                const isHidden = launcherMenu.getAttribute('aria-hidden') === 'true';
+                launcherMenu.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
+            });
+
+            // Close launcher when clicking outside
+            document.addEventListener('click', (ev) => {
+                if (!launcherMenu) return;
+                const target = ev.target;
+                if (launcherMenu.contains(target) || launcherBtn.contains(target)) return;
+                launcherMenu.setAttribute('aria-hidden', 'true');
+            });
+
+            // Wire launcher items
+            launcherMenu.querySelectorAll('.launcher-item').forEach(item => {
+                item.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const cmd = item.getAttribute('data-cmd');
+                    if (cmd) {
+                        try { window.retroTerminal.executeCommand(cmd); } catch (err) {}
+                    }
+                    launcherMenu.setAttribute('aria-hidden', 'true');
+                });
+            });
+        }
+    } catch (e) {}
+}
 
 const line = document.querySelector('.horizontal-sweep-line');
 

@@ -17,8 +17,21 @@
         <div class="screen-glow"></div>
         
         <div class="datetime-display" id="datetimeDisplay"></div>
-        
-        <div class="terminal-container" id="terminalContainer">
+
+        <!-- Desktop container and Dock (Ubuntu-style left dock) -->
+        <div class="desktop">
+            <div class="dock" id="dock">
+                <button class="dock-icon" data-cmd="help" title="Help"><img src="assets/icon-help.svg" alt="Help"></button>
+                <button class="dock-icon" data-cmd="about" title="About"><img src="assets/icon-about.svg" alt="About"></button>
+                <button class="dock-icon" data-cmd="projects" title="Projects"><img src="assets/icon-projects.svg" alt="Projects"></button>
+                <button class="dock-icon" data-cmd="skills" title="Skills"><img src="assets/icon-skills.svg" alt="Skills"></button>
+                <button class="dock-icon" data-cmd="contact" title="Contact"><img src="assets/icon-contact.svg" alt="Contact"></button>
+                <button class="dock-icon" data-cmd="snake" title="Snake"><img src="assets/icon-snake.svg" alt="Snake"></button>
+                <button class="dock-icon" data-cmd="pong" title="Pong"><img src="assets/icon-pong.svg" alt="Pong"></button>
+                <button class="dock-icon" data-cmd="terminal" title="Terminal"><img src="assets/icon-terminal.svg" alt="Terminal"></button>
+            </div>
+
+                <div class="terminal-container" id="terminalContainer">
             <div class="terminal-header">
                 <span class="terminal-title">Riv's Portfolio</span>
             </div>
@@ -52,9 +65,36 @@ ____/\\\\\\\\\__________________________/\\\\_________________________/\\\\\\\\\
             </div>
         </div>
 
-        <div class="windows-container" id="windowsContainer"></div>
+            </div>
 
-        <div class="taskbar" id="taskbar"></div>
+            <div class="windows-container" id="windowsContainer"></div>
+
+            <div class="taskbar" id="taskbar"></div>
+
+            <!-- GNOME-like top bar -->
+            <div class="gnome-topbar">
+                <div class="gnome-left">
+                    <button id="launcherBtn" class="launcher-btn" aria-label="Show launcher">☰</button>
+                </div>
+                <div class="gnome-center"></div>
+                <div class="gnome-right">
+                    <div id="gnomeClock" class="gnome-clock"></div>
+                </div>
+            </div>
+
+            <!-- Launcher menu (hidden by default) -->
+            <div id="launcherMenu" class="launcher-menu" aria-hidden="true">
+                <div class="launcher-grid">
+                    <button class="launcher-item" data-cmd="help"><img src="assets/icon-help.svg" alt="Help"><span>Help</span></button>
+                    <button class="launcher-item" data-cmd="about"><img src="assets/icon-about.svg" alt="About"><span>About</span></button>
+                    <button class="launcher-item" data-cmd="projects"><img src="assets/icon-projects.svg" alt="Projects"><span>Projects</span></button>
+                    <button class="launcher-item" data-cmd="skills"><img src="assets/icon-skills.svg" alt="Skills"><span>Skills</span></button>
+                    <button class="launcher-item" data-cmd="contact"><img src="assets/icon-contact.svg" alt="Contact"><span>Contact</span></button>
+                    <button class="launcher-item" data-cmd="snake"><img src="assets/icon-snake.svg" alt="Snake"><span>Snake</span></button>
+                    <button class="launcher-item" data-cmd="pong"><img src="assets/icon-pong.svg" alt="Pong"><span>Pong</span></button>
+                    <button class="launcher-item" data-cmd="terminal"><img src="assets/icon-terminal.svg" alt="Terminal"><span>Terminal</span></button>
+                </div>
+            </div>
 
 
         <div id="asciiModal" class="modal" aria-hidden="true">

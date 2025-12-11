@@ -16,6 +16,90 @@
     --border-color: #2a2a2a;
 }
 
+/* Ubuntu-like desktop styles */
+.desktop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.dock {
+    position: fixed;
+    left: 12px;
+    top: 60px;
+    width: 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    z-index: 1500;
+    pointer-events: auto;
+}
+
+.dock-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    color: var(--neon-green);
+    border: 1px solid rgba(255,255,255,0.03);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'VT323', monospace;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.dock-icon:hover {
+    transform: translateX(6px);
+    background: rgba(255,255,255,0.06);
+}
+
+.dock-icon:active {
+    transform: translateX(8px) scale(0.98);
+}
+
+/* Make windows look more like app windows on top of the desktop */
+.retro-window {
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* ensure windows are above dock */
+.retro-window.focused { z-index: 2000; }
+
+/* GNOME-like top bar */
+.gnome-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    background: rgba(10,10,10,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 3000;
+    pointer-events: none;
+}
+.gnome-topbar > div { pointer-events: all; }
+.gnome-left { display: flex; align-items: center; gap: 8px; }
+.gnome-center { flex: 1; text-align: center; color: var(--neon-green); font-family: 'VT323', monospace; }
+.gnome-right { display: flex; align-items: center; gap: 8px; }
+.launcher-btn { background: transparent; border: none; color: var(--neon-green); font-size: 16px; cursor: pointer; padding: 6px; border-radius: 6px; }
+.launcher-btn:hover { background: rgba(255,255,255,0.02); }
+.gnome-clock { color: gray; font-family: 'VT323', monospace; font-size: 14px; }
+
+/* Launcher menu */
+.launcher-menu { position: fixed; top: 40px; left: 12px; width: 360px; max-width: 90vw; background: var(--window-bg); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 2999; display: none; }
+.launcher-menu[aria-hidden="false"] { display: block; }
+.launcher-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.launcher-item { display: flex; flex-direction: column; align-items: center; gap: 6px; background: transparent; border: none; color: var(--neon-green); padding: 8px; cursor: pointer; border-radius: 6px; }
+.launcher-item img { width: 64px; height: 64px; }
+.launcher-item span { font-size: 12px; color: var(--text-color); }
+
 /* themes */
 body[data-theme="amber"] {
     --neon-green: #ffb000;
