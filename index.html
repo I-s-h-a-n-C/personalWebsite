@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riv's Ubuntu Desktop</title>
+    <title>Riv's Portfolio Terminal</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,34 +13,18 @@
 <body data-theme="default">
     <div class="crt-screen">
         <div class="scanlines"></div>
-        <div class="horizontal-sweep-line"></div>
+            <div class="horizontal-sweep-line"></div>
         <div class="screen-glow"></div>
-
-        <!-- GNOME-like top bar -->
-        <div class="gnome-topbar">
-            <div class="gnome-left">
-                <span class="topbar-title">Activities</span>
+        
+        <div class="datetime-display" id="datetimeDisplay"></div>
+        
+        <div class="terminal-container" id="terminalContainer">
+            <div class="terminal-header">
+                <span class="terminal-title">Riv's Portfolio</span>
             </div>
-            <div class="gnome-center">
-                <div id="topCenterBar" class="top-center-bar"></div>
-            </div>
-            <div class="gnome-right">
-                <div class="system-indicators">
-                    <span>🔊</span>
-                    <span>📶</span>
-                    <span>🔋</span>
-                </div>
-                <div id="gnomeClock" class="gnome-clock"></div>
-            </div>
-        </div>
-
-        <!-- Desktop with icons -->
-        <div class="desktop">
-            <!-- Desktop icons removed to avoid duplicates; launcher/dock provide app access -->
-
-            <!-- Wallpaper version (static background) -->
-            <div id="terminalWallpaper" class="terminal-wallpaper">
-                <div class="ascii-art">
+            <div class="terminal-body" id="terminalBody">
+                <div class="terminal-output" id="terminalOutput">
+                    <div class="terminal-line ascii-art">
 ____/\\\\\\\\\__________________________/\\\\_________________________/\\\\\\\\\\\\\____________________________________________________/\\\\\________________/\\\\\\________________________        
  __/\\\///////\\\_______________________\///\\________________________\/\\\/////////\\\________________________________________________/\\\///________________\////\\\________________________       
   _\/\\\_____\/\\\____/\\\________________/\\/_________________________\/\\\_______\/\\\_________________________________/\\\__________/\\\_______________________\/\\\_____/\\\_______________      
@@ -50,74 +34,37 @@ ____/\\\\\\\\\__________________________/\\\\_________________________/\\\\\\\\\
       _\/\\\_____\//\\\__\/\\\___\//\\\\\___________\////////\\\___________\/\\\_____________\//\\\__/\\\__\/\\\____________\/\\\_/\\_____\/\\\______\//\\\__/\\\_____\/\\\____\/\\\_\//\\\__/\\\__  
        _\/\\\______\//\\\_\/\\\____\//\\\_____________/\\\\\\\\\\___________\/\\\______________\///\\\\\/___\/\\\____________\//\\\\\______\/\\\_______\///\\\\\/____/\\\\\\\\\_\/\\\__\///\\\\\/___ 
         _\///________\///__\///______\///_____________\//////////____________\///_________________\/////_____\///______________\/////_______\///__________\/////_____\/////////__\///_____\/////_____
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">sudo@rivsportfolio:~$</span>
+                        <span class="welcome-text">Hi! I'm Riv, welcome to my portfolio</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">sudo@rivsportfolio:~$</span>
+                        <span class="welcome-text">Type 'help' to see available commands</span>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Ubuntu-style left dock -->
-            <div class="dock" id="dock">
-                <div class="dock-icon" data-app="terminal" title="Terminal">
-                    <img src="assets/icon-terminal.svg" alt="Terminal">
-                </div>
-                <div class="dock-icon" data-app="files" title="Files">
-                    <img src="assets/icon-folder.svg" alt="Files">
-                </div>
-                <div class="dock-separator"></div>
-                <div class="dock-icon" data-app="help" title="Help">
-                    <img src="assets/icon-help.svg" alt="Help">
-                </div>
-                <div class="dock-icon" data-app="about" title="About">
-                    <img src="assets/icon-about.svg" alt="About">
-                </div>
-                <div class="dock-icon" data-app="projects" title="Projects">
-                    <img src="assets/icon-projects.svg" alt="Projects">
-                </div>
-                <div class="dock-icon" data-app="skills" title="Skills">
-                    <img src="assets/icon-skills.svg" alt="Skills">
-                </div>
-                <div class="dock-icon" data-app="contact" title="Contact">
-                    <img src="assets/icon-contact.svg" alt="Contact">
-                </div>
-                <div class="dock-separator"></div>
-                <div class="dock-icon" data-app="snake" title="Snake">
-                    <img src="assets/icon-snake.svg" alt="Snake">
-                </div>
-                <div class="dock-icon" data-app="pong" title="Pong">
-                    <img src="assets/icon-pong.svg" alt="Pong">
+                <div class="terminal-input-line">
+                    <span class="prompt">sudo@rivsportfolio:~$</span>
+                    <input type="text" class="terminal-input" id="terminalInput" autofocus>
+                    <span class="cursor" id="cursor">█</span>
                 </div>
             </div>
         </div>
 
-        <!-- Windows container -->
         <div class="windows-container" id="windowsContainer"></div>
 
-        <!-- Taskbar for minimized windows -->
-        <div class="taskbar" id="taskbar">
-            <div class="taskbar-start">
-                <button id="taskbarStartBtn" class="taskbar-start-btn" aria-label="Start">
-                    <img src="assets/placeholder.svg" alt="Start" class="start-placeholder">
-                </button>
-            </div>
-            <div class="taskbar-windows" id="taskbarWindows"></div>
-        </div>
+        <div class="taskbar" id="taskbar"></div>
 
-        <!-- Launcher menu -->
-        <div id="launcherMenu" class="launcher-menu" aria-hidden="true">
-            <div class="launcher-header">
-                <input type="search" class="launcher-search" placeholder="Type to search..." id="launcherSearch">
-            </div>
-            <div class="launcher-grid" id="launcherGrid">
-                <!-- Apps will be populated by JS -->
-            </div>
-        </div>
 
-        <!-- System Modal for alerts -->
-        <div id="systemModal" class="modal">
+        <div id="asciiModal" class="modal" aria-hidden="true">
             <div class="modal-backdrop"></div>
-            <div class="modal-box">
-                <h3 id="modalTitle">System Message</h3>
-                <p id="modalMessage"></p>
+            <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="asciiModalTitle">
+                <h3 id="asciiModalTitle">Ascii Art</h3>
+                <p>Does the ASCII art hurt your eyes? Choose <strong>Turn off</strong> to replace it with just text.</p>
                 <div class="modal-actions">
-                    <button class="modal-btn modal-btn-confirm" id="modalConfirm">OK</button>
+                    <button class="modal-btn modal-btn-hide">Turn off</button>
+                    <button class="modal-btn modal-btn-keep">Keep ASCII</button>
                 </div>
             </div>
         </div>
