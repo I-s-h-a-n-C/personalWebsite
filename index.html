@@ -51,7 +51,6 @@ ____/\\\\\\\\\__________________________/\\\\_________________________/\\\\\\\\\
                 <div class="terminal-input-line">
                     <span class="prompt">sudo@rivsportfolio:~$</span>
                     <input type="text" class="terminal-input" id="terminalInput" autofocus>
-                    <span class="cursor" id="cursor">█</span>
                 </div>
             </div>
         </div>
@@ -81,25 +80,14 @@ ____/\\\\\\\\\__________________________/\\\\_________________________/\\\\\\\\\
                     <div class="music-artist">Roar</div>
                     <div class="music-controls">
                         <button id="musicPrev" class="music-btn icon-btn" aria-label="Previous">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 18V6l-8 6 8 6zM20 6v12h-2V6h2z" fill="currentColor"/></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 19V5l-9 7 9 7zM20 5v14h-2V5h2z" fill="currentColor"/></svg>
                         </button>
                         <button id="musicTogglePlay" class="music-btn icon-btn" aria-label="Play/Pause">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7L8 5z" fill="currentColor"/></svg>
                         </button>
                         <button id="musicNext" class="music-btn icon-btn" aria-label="Next">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 6v12l8-6-8-6zM4 6v12h2V6H4z" fill="currentColor"/></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 5v14l9-7-9-7zM4 5v14h2V5H4z" fill="currentColor"/></svg>
                         </button>
-                    </div>
-                    <div class="music-playlist" id="musicPlaylistWrap">
-                        <ul id="musicPlaylist" class="music-playlist-list">
-                            <!-- Tracks will be listed here -->
-                        </ul>
-                        <form id="musicAddForm" class="music-add-form">
-                            <input type="text" id="musicUrl" placeholder="Track URL (relative or http)" required>
-                            <input type="text" id="musicTitle" placeholder="Title (optional)">
-                            <input type="text" id="musicArtist" placeholder="Artist (optional)">
-                            <button type="submit" class="music-btn">Add</button>
-                        </form>
                     </div>
                 </div>
                 <audio id="musicAudio" src="christmaskids.mp3" preload="metadata"></audio>

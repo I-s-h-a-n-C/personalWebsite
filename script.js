@@ -23,12 +23,12 @@ class RetroTerminal {
     init() {
         this.terminalInput.addEventListener('keydown', (e) => this.handleKeyPress(e));
         this.terminalInput.addEventListener('input', () => {
-            this.updateCursor();
+            try { this.updateCursor && this.updateCursor(); } catch (e) {}
             try { this.updateAutocomplete(); } catch (e) {}
         });
-        this.terminalInput.addEventListener('click', () => this.updateCursor());
-        this.terminalInput.addEventListener('keyup', () => this.updateCursor());
-        this.terminalInput.addEventListener('focus', () => this.updateCursor());
+        this.terminalInput.addEventListener('click', () => { try { this.updateCursor && this.updateCursor(); } catch (e) {} });
+        this.terminalInput.addEventListener('keyup', () => { try { this.updateCursor && this.updateCursor(); } catch (e) {} });
+        this.terminalInput.addEventListener('focus', () => { try { this.updateCursor && this.updateCursor(); } catch (e) {} });
         this.terminalInput.addEventListener('blur', () => {
         });
 
@@ -91,7 +91,7 @@ class RetroTerminal {
             }
         }, false);
 
-        setTimeout(() => this.updateCursor(), 0);
+        setTimeout(() => { try { this.updateCursor && this.updateCursor(); } catch (e) {} }, 0);
     }
 
     loadSettings() {
@@ -1424,7 +1424,7 @@ function restartAnimation() {
 
 restartAnimation();
 
-// Music player with playlist, next/back, and add-track form
+// Music player wiring — single play/pause icon button (no hide persistence)
 document.addEventListener('DOMContentLoaded', () => {
     try {
         const card = document.getElementById('musicCard');
@@ -1432,94 +1432,62 @@ document.addEventListener('DOMContentLoaded', () => {
         const prevBtn = document.getElementById('musicPrev');
         const nextBtn = document.getElementById('musicNext');
         const audio = document.getElementById('musicAudio');
-        const playlistEl = document.getElementById('musicPlaylist');
-        const addForm = document.getElementById('musicAddForm');
-        const urlInput = document.getElementById('musicUrl');
-        const titleInput = document.getElementById('musicTitle');
-        const artistInput = document.getElementById('musicArtist');
-        const titleEl = document.querySelector('.music-title');
-        const artistEl = document.querySelector('.music-artist');
+        const art = document.getElementById('musicArt');
+        const titleEl = card && card.querySelector('.music-title');
+        const artistEl = card && card.querySelector('.music-artist');
 
-        if (!card || !btn || !audio || !playlistEl) return;
+        if (!card || !btn || !audio || !titleEl || !artistEl) return;
 
+        // Hardcoded playlist — add your tracks here (users cannot add)
+        const playlist = [
+            { src: audio.getAttribute('src') || 'assets/track1.mp3', title: titleEl.textContent || 'Track 1', artist: artistEl.textContent || 'Artist', art: art.getAttribute('src') || 'assets/artist1.jpg' },
+            // Example extra tracks (uncomment or edit to add)
+            // { src: 'assets/track2.mp3', title: 'Second Track', artist: 'Artist 2', art: 'assets/artist2.jpg' },
+            // { src: 'assets/track3.mp3', title: 'Third Track', artist: 'Artist 3', art: 'assets/artist3.jpg' },
+        ];
+
+        let currentIndex = 0;
         const playSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7L8 5z" fill="currentColor"/></svg>';
         const pauseSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>';
 
-        let playlist = [
-            { src: 'assets/track.mp4', title: 'Track Title (placeholder)', artist: 'Artist Name' }
-        ];
-        let current = 0;
-
-        function renderPlaylist() {
-            playlistEl.innerHTML = '';
-            playlist.forEach((t, i) => {
-                const li = document.createElement('li');
-                li.className = 'music-playlist-item' + (i === current ? ' playing' : '');
-                li.dataset.index = i;
-                li.innerHTML = `<strong>${escapeHtml(t.title || 'Untitled')}</strong> <span class="quiet">${escapeHtml(t.artist || '')}</span>`;
-                li.addEventListener('click', () => { loadTrack(i, true); });
-                playlistEl.appendChild(li);
-            });
-        }
-
-        function loadTrack(i, autoplay = false) {
-            if (i < 0 || i >= playlist.length) return;
-            current = i;
-            audio.src = playlist[current].src;
-            if (titleEl) titleEl.textContent = playlist[current].title || 'Untitled';
-            if (artistEl) artistEl.textContent = playlist[current].artist || '';
-            renderPlaylist();
+        function loadTrack(index, autoplay = false) {
+            index = (index + playlist.length) % playlist.length;
+            currentIndex = index;
+            const item = playlist[currentIndex];
+            try { audio.src = item.src; } catch (e) {}
+            try { titleEl.textContent = item.title || ''; } catch (e) {}
+            try { artistEl.textContent = item.artist || ''; } catch (e) {}
+            try { if (art && item.art) art.src = item.art; } catch (e) {}
             if (autoplay) {
                 audio.play().catch(() => {});
             }
         }
 
-        function nextTrack(autoplay = true) {
-            const next = (current + 1) % playlist.length;
-            loadTrack(next, autoplay);
-        }
-
-        function prevTrack(autoplay = true) {
-            const prev = (current - 1 + playlist.length) % playlist.length;
-            loadTrack(prev, autoplay);
-        }
-
-        // Utility to avoid XSS in inserted text
-        function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
+        // Initialize
         btn.innerHTML = playSVG;
+        loadTrack(0, false);
 
         btn.addEventListener('click', () => {
-            if (audio.paused) { audio.play().catch(() => {}); }
-            else { audio.pause(); }
+            if (audio.paused) {
+                audio.play().catch(() => {});
+                btn.innerHTML = pauseSVG;
+            } else {
+                audio.pause();
+                btn.innerHTML = playSVG;
+            }
         });
 
-        prevBtn && prevBtn.addEventListener('click', () => { prevTrack(true); });
-        nextBtn && nextBtn.addEventListener('click', () => { nextTrack(true); });
+        prevBtn && prevBtn.addEventListener('click', () => {
+            const wasPlaying = !audio.paused;
+            loadTrack(currentIndex - 1, wasPlaying);
+        });
+        nextBtn && nextBtn.addEventListener('click', () => {
+            const wasPlaying = !audio.paused;
+            loadTrack(currentIndex + 1, wasPlaying);
+        });
 
         audio.addEventListener('play', () => { btn.innerHTML = pauseSVG; });
         audio.addEventListener('pause', () => { btn.innerHTML = playSVG; });
-        audio.addEventListener('ended', () => { btn.innerHTML = playSVG; try { audio.currentTime = 0; } catch (e) {} nextTrack(true); });
-
-        // Handle add-song form
-        if (addForm) {
-            addForm.addEventListener('submit', (ev) => {
-                ev.preventDefault();
-                const url = (urlInput && urlInput.value || '').trim();
-                if (!url) return;
-                const title = (titleInput && titleInput.value.trim()) || url.split('/').pop() || 'Untitled';
-                const artist = (artistInput && artistInput.value.trim()) || '';
-                playlist.push({ src: url, title, artist });
-                renderPlaylist();
-                // clear inputs
-                urlInput.value = ''; titleInput.value = ''; artistInput.value = '';
-            });
-        }
-
-        // initialize
-        renderPlaylist();
-        loadTrack(0, false);
-    } catch (e) {
-        console.error('Music player init error', e);
-    }
+        audio.addEventListener('ended', () => { loadTrack(currentIndex + 1, true); });
+    } catch (e) {}
 });
