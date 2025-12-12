@@ -13,18 +13,23 @@ class RetroTerminal {
         this.typingSpeed = 30;
         this.minimizedWindows = [];
         this.allCommands = ['help', 'about', 'projects', 'skills', 'contact', 'quote', 'surprise', 'neo', 'color', 'theme', 'clear', 'exit', 'quit', 'snake', 'pong'];
+        this.autocompleteMatches = [];
+        this.autocompleteIndex = -1;
+        this.suggestionEl = null;
         
         this.init();
     }
 
     init() {
         this.terminalInput.addEventListener('keydown', (e) => this.handleKeyPress(e));
-        this.terminalInput.addEventListener('input', () => this.updateCursor());
+        this.terminalInput.addEventListener('input', () => {
+            this.updateCursor();
+            try { this.updateAutocomplete(); } catch (e) {}
+        });
         this.terminalInput.addEventListener('click', () => this.updateCursor());
         this.terminalInput.addEventListener('keyup', () => this.updateCursor());
         this.terminalInput.addEventListener('focus', () => this.updateCursor());
         this.terminalInput.addEventListener('blur', () => {
-            // caret element removed — nothing to do on blur
         });
 
         document.getElementById('terminalContainer').addEventListener('click', () => {
@@ -61,18 +66,13 @@ class RetroTerminal {
             }
         }, true);
 
-        // Allow typing anywhere on the page without clicking the input.
-        // If a printable key is pressed while not editing, focus the terminal input
-        // and insert that character so the user can start typing immediately.
         document.addEventListener('keydown', (e) => {
             const active = document.activeElement;
             const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
             if (isEditing) return; // don't steal focus when user is in a form
 
-            // Ignore modifier-only keys and special combos
             if (e.ctrlKey || e.metaKey) return;
 
-            // If key is a single printable character, focus the input and insert it
             if (e.key && e.key.length === 1 && !e.altKey) {
                 e.preventDefault();
                 try {
@@ -87,7 +87,6 @@ class RetroTerminal {
                     try { this.terminalInput.focus(); } catch (e) {}
                 }
             } else {
-                // For non-printable keys (Backspace, Enter etc.), just focus so they act on the input
                 try { this.terminalInput.focus(); } catch (e) {}
             }
         }, false);
@@ -144,8 +143,21 @@ class RetroTerminal {
     }
 
     handleKeyPress(e) {
+        // If autocomplete suggestions are visible, let arrows and Tab/Enter interact with them
+        const suggestionsVisible = this.suggestionEl && this.suggestionEl.style.display === 'block';
+        if (suggestionsVisible && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+            e.preventDefault();
+            const dir = e.key === 'ArrowUp' ? -1 : 1;
+            this.navigateAutocomplete(dir);
+            return;
+        }
+
         if (e.key === 'Enter') {
             e.preventDefault();
+            if (suggestionsVisible && this.autocompleteMatches.length > 0 && this.autocompleteIndex >= 0) {
+                this.acceptAutocomplete(this.autocompleteIndex);
+                return;
+            }
             this.processCommand();
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
@@ -155,22 +167,102 @@ class RetroTerminal {
             this.navigateHistory(1);
         } else if (e.key === 'Tab') {
             e.preventDefault();
-            this.autocompleteCommand();
+            if (suggestionsVisible && this.autocompleteMatches.length > 0) {
+                const idx = this.autocompleteIndex >= 0 ? this.autocompleteIndex : 0;
+                this.acceptAutocomplete(idx);
+            } else {
+                this.autocompleteCommand();
+            }
         }
+    }
+
+    // Autocomplete UI and logic
+    updateAutocomplete() {
+        try {
+            const val = (this.terminalInput.value || '').trim().toLowerCase();
+            if (!val) { this.hideAutocomplete(); return; }
+
+            const matches = this.allCommands.filter(cmd => cmd.startsWith(val));
+            if (!matches || matches.length === 0) { this.hideAutocomplete(); return; }
+
+            this.autocompleteMatches = matches;
+            if (this.autocompleteIndex >= matches.length) this.autocompleteIndex = matches.length - 1;
+            if (this.autocompleteIndex < 0) this.autocompleteIndex = -1;
+
+            if (!this.suggestionEl) {
+                this.suggestionEl = document.createElement('div');
+                this.suggestionEl.className = 'autocomplete-suggestions';
+                document.body.appendChild(this.suggestionEl);
+            }
+
+            // Build list
+            this.suggestionEl.innerHTML = '';
+            matches.slice(0, 10).forEach((m, i) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                if (i === this.autocompleteIndex) item.classList.add('active');
+                item.textContent = m;
+                item.addEventListener('mousedown', (ev) => {
+                    ev.preventDefault();
+                    this.acceptAutocomplete(i);
+                });
+                this.suggestionEl.appendChild(item);
+            });
+
+            // Position near input
+            const rect = this.terminalInput.getBoundingClientRect();
+            this.suggestionEl.style.position = 'absolute';
+            this.suggestionEl.style.left = `${rect.left + window.scrollX}px`;
+            this.suggestionEl.style.top = `${rect.bottom + window.scrollY + 6}px`;
+            this.suggestionEl.style.minWidth = `${Math.max(160, rect.width)}px`;
+            this.suggestionEl.style.display = 'block';
+        } catch (e) {
+            this.hideAutocomplete();
+        }
+    }
+
+    navigateAutocomplete(dir) {
+        try {
+            if (!this.autocompleteMatches || this.autocompleteMatches.length === 0) return;
+            if (this.autocompleteIndex === -1) {
+                this.autocompleteIndex = dir > 0 ? 0 : this.autocompleteMatches.length - 1;
+            } else {
+                this.autocompleteIndex = (this.autocompleteIndex + dir + this.autocompleteMatches.length) % this.autocompleteMatches.length;
+            }
+            // update active class
+            const items = this.suggestionEl ? Array.from(this.suggestionEl.children) : [];
+            items.forEach((it, i) => it.classList.toggle('active', i === this.autocompleteIndex));
+        } catch (e) {}
+    }
+
+    acceptAutocomplete(index) {
+        try {
+            if (!this.autocompleteMatches || this.autocompleteMatches.length === 0) return;
+            const pick = this.autocompleteMatches[index] || this.autocompleteMatches[0];
+            this.terminalInput.value = pick;
+            this.terminalInput.focus();
+            this.terminalInput.selectionStart = this.terminalInput.selectionEnd = this.terminalInput.value.length;
+            this.hideAutocomplete();
+        } catch (e) {}
+    }
+
+    hideAutocomplete() {
+        try {
+            if (this.suggestionEl) this.suggestionEl.style.display = 'none';
+            this.autocompleteMatches = [];
+            this.autocompleteIndex = -1;
+        } catch (e) {}
     }
 
     autocompleteCommand() {
         const input = this.terminalInput.value.trim().toLowerCase();
         if (!input) return;
 
-        // Find matching commands
         const matches = this.allCommands.filter(cmd => cmd.startsWith(input));
         
         if (matches.length === 1) {
-            // Single match: autocomplete
             this.terminalInput.value = matches[0];
         } else if (matches.length > 1) {
-            // Multiple matches: show suggestions
             this.addOutputLine(`Suggestions: ${matches.join(', ')}`, 'info-text');
         }
     }
@@ -543,7 +635,7 @@ class RetroTerminal {
             'ms dos': { bg: '#0000aa', text: '#00ff00' }
         };
 
-        // provide a few friendly aliases for the DOS-style theme
+        // this should make it easier
         try {
             themes['dos'] = themes['ms dos'];
             themes['msdos'] = themes['ms dos'];
@@ -1006,7 +1098,15 @@ class RetroTerminal {
         const btn = document.createElement('button');
         btn.id = `taskbar-btn-${windowId}`;
         btn.className = 'taskbar-btn';
-        btn.textContent = title;
+        // show a small icon instead of the full text label for minimized windows
+        try {
+            const icon = this.getIconForTitle(title || 'file');
+            btn.innerHTML = `<span class="taskbar-icon" aria-hidden="true">${icon}</span>`;
+            btn.setAttribute('aria-label', title || 'window');
+            btn.title = title || '';
+        } catch (e) {
+            btn.textContent = title;
+        }
         btn.addEventListener('click', () => {
             const window = document.getElementById(windowId);
             if (window) {
@@ -1019,6 +1119,34 @@ class RetroTerminal {
 
         taskbar.appendChild(btn);
         this.minimizedWindows.push(windowId);
+    }
+
+    getIconForTitle(title) {
+        try {
+            const t = (title || '').toLowerCase();
+            const svgs = {
+                game: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="20" height="10" rx="3" fill="currentColor"/><circle cx="8" cy="12" r="1.6" fill="#000"/><circle cx="12" cy="12" r="1.6" fill="#000"/><rect x="16" y="10" width="1.6" height="1.6" fill="#000"/><rect x="18.4" y="10" width="1.6" height="1.6" fill="#000"/></svg>`,
+                doc: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M13 3v5h5" fill="#000"/></svg>`,
+                folder: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 7h6l2 2h10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="currentColor"/></svg>`,
+                help: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" fill="currentColor"/><path d="M9.5 9.5a2.5 2.5 0 1 1 5 1c0 1.5-1.5 2-2 2" stroke="#000" stroke-width="0.8" fill="none"/><circle cx="12" cy="17" r="0.8" fill="#000"/></svg>`,
+                envelope: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 6v12h20V6" fill="currentColor"/><path d="M22 6l-10 7L2 6" fill="#000"/></svg>`,
+                terminal: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="18" height="14" rx="2" fill="currentColor"/><path d="M8 9l3 3-3 3" stroke="#000" stroke-width="1.2" fill="none"/><path d="M14 15h4" stroke="#000" stroke-width="1.2" fill="none"/></svg>`,
+                quote: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 7h4v4H7zM13 7h4v4h-4z" fill="currentColor"/></svg>`,
+                gear: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="currentColor"/><path d="M2 12a10 10 0 0 0 20 0 10 10 0 0 0-20 0z" fill-opacity="0" stroke="#000" stroke-width="0.8"/></svg>`,
+                box: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 7l9 5 9-5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="currentColor"/></svg>`
+            };
+
+            if (t.includes('.rom') || t.includes('snake') || t.includes('pong') || t.includes('game')) return svgs.game;
+            if (t.includes('about') || t.includes('readme') || t.includes('.txt')) return svgs.doc;
+            if (t.includes('help') || t.includes('faq')) return svgs.help;
+            if (t.includes('project')) return svgs.folder;
+            if (t.includes('skills') || t.includes('skill')) return svgs.gear;
+            if (t.includes('contact') || t.includes('email')) return svgs.envelope;
+            if (t.includes('neo') || t.includes('matrix')) return svgs.box;
+            if (t.includes('quote')) return svgs.quote;
+            if (t.includes('terminal') || t.includes('sudo')) return svgs.terminal;
+            return svgs.box;
+        } catch (e) { return '📦'; }
     }
 
     removeFromTaskbar(windowId) {
@@ -1224,17 +1352,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) {}
         };
-        
-        // Ensure initial state respects small viewports
+
         applyAsciiFallback();
 
-        // Update on resize so ASCII art switches to normal title when the screen is reduced
         window.addEventListener('resize', () => {
             try { applyAsciiFallback(); } catch (e) {}
         }, { passive: true });
 
         if (asciiModal) {
-            // On mobile or narrow screens we skip the ASCII modal and go straight to the boot sequence
             if (isMobileOrNarrow()) {
                 startBootSequence(() => new RetroTerminal());
             } else {

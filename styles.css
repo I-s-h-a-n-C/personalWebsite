@@ -169,7 +169,7 @@ body::before {
     flex-direction: column;
     position: relative;
     z-index: 1;
-    padding-bottom: 40px;
+    padding-bottom: 75px;
 }
 
 .terminal-header {
@@ -289,10 +289,20 @@ body::before {
 }
 
 .taskbar-btn:hover {
-    background: rgba(255,255,255,0.08);
-    color: var(--darker-bg);
+    background: rgba(255,255,255,0.12);
+    color: var(--neon-green);
     transform: translateY(-2px);
 }
+
+/* icon inside taskbar button */
+.taskbar-icon {
+    font-size: 16px;
+    display: inline-block;
+    line-height: 1;
+}
+
+.taskbar-icon { color: var(--neon-green); }
+.taskbar-icon svg { width: 18px; height: 18px; display: block; fill: currentColor; }
 
 .retro-window {
     position: absolute;
@@ -820,6 +830,32 @@ body::before {
     line-height: 1.2;
     color: var(--neon-green);
     margin: 10px 0;
+}
+
+/* Autocomplete suggestion box */
+.autocomplete-suggestions {
+    background: rgba(0,0,0,0.75);
+    color: var(--text-color);
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 6px 0;
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    border-radius: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    z-index: 3000;
+    display: none;
+}
+
+.autocomplete-item {
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.autocomplete-item.active,
+.autocomplete-item:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--neon-green);
 }
 
 
