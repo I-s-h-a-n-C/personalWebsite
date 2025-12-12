@@ -1423,3 +1423,103 @@ function restartAnimation() {
 }
 
 restartAnimation();
+
+// Music player with playlist, next/back, and add-track form
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const card = document.getElementById('musicCard');
+        const btn = document.getElementById('musicTogglePlay');
+        const prevBtn = document.getElementById('musicPrev');
+        const nextBtn = document.getElementById('musicNext');
+        const audio = document.getElementById('musicAudio');
+        const playlistEl = document.getElementById('musicPlaylist');
+        const addForm = document.getElementById('musicAddForm');
+        const urlInput = document.getElementById('musicUrl');
+        const titleInput = document.getElementById('musicTitle');
+        const artistInput = document.getElementById('musicArtist');
+        const titleEl = document.querySelector('.music-title');
+        const artistEl = document.querySelector('.music-artist');
+
+        if (!card || !btn || !audio || !playlistEl) return;
+
+        const playSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7L8 5z" fill="currentColor"/></svg>';
+        const pauseSVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>';
+
+        let playlist = [
+            { src: 'assets/track.mp4', title: 'Track Title (placeholder)', artist: 'Artist Name' }
+        ];
+        let current = 0;
+
+        function renderPlaylist() {
+            playlistEl.innerHTML = '';
+            playlist.forEach((t, i) => {
+                const li = document.createElement('li');
+                li.className = 'music-playlist-item' + (i === current ? ' playing' : '');
+                li.dataset.index = i;
+                li.innerHTML = `<strong>${escapeHtml(t.title || 'Untitled')}</strong> <span class="quiet">${escapeHtml(t.artist || '')}</span>`;
+                li.addEventListener('click', () => { loadTrack(i, true); });
+                playlistEl.appendChild(li);
+            });
+        }
+
+        function loadTrack(i, autoplay = false) {
+            if (i < 0 || i >= playlist.length) return;
+            current = i;
+            audio.src = playlist[current].src;
+            if (titleEl) titleEl.textContent = playlist[current].title || 'Untitled';
+            if (artistEl) artistEl.textContent = playlist[current].artist || '';
+            renderPlaylist();
+            if (autoplay) {
+                audio.play().catch(() => {});
+            }
+        }
+
+        function nextTrack(autoplay = true) {
+            const next = (current + 1) % playlist.length;
+            loadTrack(next, autoplay);
+        }
+
+        function prevTrack(autoplay = true) {
+            const prev = (current - 1 + playlist.length) % playlist.length;
+            loadTrack(prev, autoplay);
+        }
+
+        // Utility to avoid XSS in inserted text
+        function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        btn.innerHTML = playSVG;
+
+        btn.addEventListener('click', () => {
+            if (audio.paused) { audio.play().catch(() => {}); }
+            else { audio.pause(); }
+        });
+
+        prevBtn && prevBtn.addEventListener('click', () => { prevTrack(true); });
+        nextBtn && nextBtn.addEventListener('click', () => { nextTrack(true); });
+
+        audio.addEventListener('play', () => { btn.innerHTML = pauseSVG; });
+        audio.addEventListener('pause', () => { btn.innerHTML = playSVG; });
+        audio.addEventListener('ended', () => { btn.innerHTML = playSVG; try { audio.currentTime = 0; } catch (e) {} nextTrack(true); });
+
+        // Handle add-song form
+        if (addForm) {
+            addForm.addEventListener('submit', (ev) => {
+                ev.preventDefault();
+                const url = (urlInput && urlInput.value || '').trim();
+                if (!url) return;
+                const title = (titleInput && titleInput.value.trim()) || url.split('/').pop() || 'Untitled';
+                const artist = (artistInput && artistInput.value.trim()) || '';
+                playlist.push({ src: url, title, artist });
+                renderPlaylist();
+                // clear inputs
+                urlInput.value = ''; titleInput.value = ''; artistInput.value = '';
+            });
+        }
+
+        // initialize
+        renderPlaylist();
+        loadTrack(0, false);
+    } catch (e) {
+        console.error('Music player init error', e);
+    }
+});
