@@ -1,6 +1,7 @@
 # My Portfolio
 A portfolio that uses a old terminal-style UI to navigate thing about me and play tiny browser games.
-<img width="1918" height="865" alt="image" src="https://github.com/user-attachments/assets/3e15ee1e-5c20-4d31-a93d-194e5d5b3998" />
+<img width="1918" height="866" alt="image" src="https://github.com/user-attachments/assets/76b6ee28-9a34-4afa-95e4-6aebd1778c5c" />
+
 
 
 ### Quick Overview
@@ -26,3 +27,12 @@ You type commands into the terminal and press enter to do things.
 * snake — starts the Snake game.
 * pong — starts the Pong game.
 * clear — clears all the terminal's output.
+
+### New Stuff
+Since my last edit, I changed/added some stuff, so here they are:
+* music - I added a music player with some of my favorite songs (more to be added soon)
+* liquid glass -  I added a liquid glass effect to the pages
+* animation - I added a physics animation to dragging around the pages
+* icons -  all around, I swapped emojis for icons from w3
+* autocomplete - I added autocomplete by pressing tab, and also choices under where you type in commands
+* mobile fix - I fixed mobile too
