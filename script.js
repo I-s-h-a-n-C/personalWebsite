@@ -986,30 +986,47 @@ class RetroTerminal {
 
         const drag = (e) => {
             if (!isDragging) return;
-            
+
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
-            
+
             let newX = initialX + deltaX;
             let newY = initialY + deltaY;
-            
+
             const maxX = window.innerWidth - windowElement.offsetWidth;
             const maxY = window.innerHeight - windowElement.offsetHeight;
-            
+
             newX = Math.max(0, Math.min(newX, maxX));
             newY = Math.max(0, Math.min(newY, maxY));
-            
-            windowElement.style.left = `${newX}px`;
-            windowElement.style.top = `${newY}px`;
+
+            // Add subtle 3D tilt based on distance from center
+            try {
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const rotateX = ((newY - centerY) / window.innerHeight) * 5; // degrees
+                const rotateY = ((newX - centerX) / window.innerWidth) * 5; // degrees
+
+                windowElement.style.left = `${newX}px`;
+                windowElement.style.top = `${newY}px`;
+                windowElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg)`;
+            } catch (err) {
+                windowElement.style.left = `${newX}px`;
+                windowElement.style.top = `${newY}px`;
+            }
         };
 
         const stopDrag = () => {
             if (isDragging) {
                 isDragging = false;
-                windowElement.style.transition = '';
+                // animate transform back to neutral
+                windowElement.style.transition = 'transform 0.3s ease';
                 windowElement.style.cursor = '';
                 windowElement.classList.remove('dragging');
                 document.body.style.userSelect = '';
+                // Reset transform shortly after releasing
+                setTimeout(() => {
+                    try { windowElement.style.transform = ''; } catch (e) {}
+                }, 100);
             }
         };
 
