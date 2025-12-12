@@ -1441,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hardcoded playlist — edit these entries to add songs (users cannot add at runtime)
         const playlist = [
             { src: audio.getAttribute('src') || 'christmaskids.mp3', title: titleEl.textContent || 'Christmas Kids', artist: artistEl.textContent || 'Roar', art: art.getAttribute('src') || 'assets/artist1.jpg' },
-            { src: 'assets/track2.mp3', title: 'Glimpse of Us', artist: 'Joji', art: 'glimpseofus.jpg' }
+            { src: 'Joji -  Glimpse of Us.mp3', title: 'Glimpse of Us', artist: 'Joji', art: 'glimpseofus.jpg' }
         ];
 
         let currentIndex = 0;
@@ -1451,11 +1451,22 @@ document.addEventListener('DOMContentLoaded', () => {
         function loadTrack(index, autoplay = false) {
             index = (index + playlist.length) % playlist.length;
             currentIndex = index;
-            const item = playlist[currentIndex];
-            try { audio.src = item.src; } catch (e) {}
+            const item = playlist[currentIndex] || {};
+
+            // Forcefully stop and reload the audio element so the new src takes effect
+            try { audio.pause(); } catch (e) {}
+            try {
+                if (item.src) {
+                    audio.src = item.src;
+                    try { audio.load(); } catch (e) {}
+                    try { audio.currentTime = 0; } catch (e) {}
+                }
+            } catch (e) {}
+
             try { titleEl.textContent = item.title || ''; } catch (e) {}
             try { artistEl.textContent = item.artist || ''; } catch (e) {}
             try { if (art && item.art) art.src = item.art; } catch (e) {}
+
             if (autoplay) {
                 audio.play().catch(() => {});
             }
