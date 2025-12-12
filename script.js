@@ -1437,8 +1437,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const artistEl = card && card.querySelector('.music-artist');
 
         if (!card || !btn || !audio || !titleEl || !artistEl) return;
-
-        // Hardcoded playlist — edit these entries to add songs (users cannot add at runtime)
         const playlist = [
             { src: audio.getAttribute('src') || 'christmaskids.mp3', title: titleEl.textContent || 'Christmas Kids', artist: artistEl.textContent || 'Roar', art: art.getAttribute('src') || 'assets/artist1.jpg' },
             { src: 'Joji -  Glimpse of Us.mp3', title: 'Glimpse of Us', artist: 'Joji', art: 'glimpseofus.jpg' }
@@ -1453,7 +1451,6 @@ document.addEventListener('DOMContentLoaded', () => {
             currentIndex = index;
             const item = playlist[currentIndex] || {};
 
-            // Forcefully stop and reload the audio element so the new src takes effect
             try { audio.pause(); } catch (e) {}
             try {
                 if (item.src) {
