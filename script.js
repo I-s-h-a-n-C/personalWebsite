@@ -21,6 +21,11 @@ class RetroTerminal {
     }
 
     init() {
+        // detect mobile/narrow mode early so we can disable typing behaviour
+        try {
+            this._isMobile = (window.innerWidth < 900) || ('ontouchstart' in window) || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+        } catch (e) { this._isMobile = false; }
+
         this.terminalInput.addEventListener('keydown', (e) => this.handleKeyPress(e));
         this.terminalInput.addEventListener('input', () => {
             try { this.updateCursor && this.updateCursor(); } catch (e) {}
@@ -47,10 +52,14 @@ class RetroTerminal {
 
         try { this.loadSettings(); } catch (e) {}
 
+        // Ensure blinking caret and mobile quick bar exist
+        try { this.setupBlinkingCursor(); } catch (e) {}
+        try { this.setupMobileQuickBar(); } catch (e) {}
         this.updateDateTime();
         setInterval(() => this.updateDateTime(), 1000);
 
         document.addEventListener('keydown', (e) => {
+            if (this._isMobile) return; // don't enable slash-insert on mobile
             const active = document.activeElement;
             const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
             if (isEditing) return;
@@ -67,6 +76,7 @@ class RetroTerminal {
         }, true);
 
         document.addEventListener('keydown', (e) => {
+            if (this._isMobile) return; // disable typing capture on mobile
             const active = document.activeElement;
             const isEditing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
             if (isEditing) return; // don't steal focus when user is in a form
@@ -92,6 +102,201 @@ class RetroTerminal {
         }, false);
 
         setTimeout(() => { try { this.updateCursor && this.updateCursor(); } catch (e) {} }, 0);
+    }
+
+    // Create a blinking fake caret overlay that follows the input text
+    setupBlinkingCursor() {
+        try {
+            if (this._cursorSetup) return;
+            this._cursorSetup = true;
+
+            const input = this.terminalInput;
+            if (!input) return;
+
+            // create measurement span
+            const meas = document.createElement('span');
+            meas.style.position = 'absolute';
+            meas.style.visibility = 'hidden';
+            meas.style.whiteSpace = 'pre';
+            meas.style.fontFamily = window.getComputedStyle(input).fontFamily || 'monospace';
+            meas.style.fontSize = window.getComputedStyle(input).fontSize || '16px';
+            meas.id = 'rivs-caret-measure';
+            document.body.appendChild(meas);
+
+            const caret = document.createElement('span');
+            caret.className = 'rivs-fake-caret';
+            caret.textContent = '▌';
+            caret.style.position = 'absolute';
+            caret.style.pointerEvents = 'none';
+            caret.style.transition = 'left 0.05s linear, top 0.05s linear';
+            caret.style.color = 'var(--neon-green, #00ff88)';
+            caret.style.fontFamily = meas.style.fontFamily;
+            caret.style.fontSize = meas.style.fontSize;
+            caret.style.zIndex = '9999';
+            caret.style.opacity = '0.95';
+            caret.style.willChange = 'left, top';
+            caret.style.display = 'none';
+            caret.style.textShadow = '0 0 6px rgba(0,255,136,0.6)';
+
+            // blinking animation
+            const style = document.createElement('style');
+            style.id = 'rivs-caret-style';
+            style.textContent = `
+                @keyframes rivsBlink { 0% { opacity: 1 } 50% { opacity: 0 } 100% { opacity: 1 } }
+                .rivs-fake-caret { animation: rivsBlink 1s steps(1,end) infinite; }
+            `;
+            document.head.appendChild(style);
+
+            document.body.appendChild(caret);
+
+            this._caretEl = caret;
+            this._caretMeasure = meas;
+
+            // update position function
+            this.updateCursor = () => {
+                try {
+                    const val = input.value || '';
+                    const rect = input.getBoundingClientRect();
+                    const cs = window.getComputedStyle(input);
+                    this._caretMeasure.style.font = cs.font;
+                    this._caretMeasure.textContent = val || '\u00a0';
+
+                    // measure width of text
+                    const textWidth = this._caretMeasure.getBoundingClientRect().width;
+                    const paddingLeft = parseFloat(cs.paddingLeft || 6);
+                    const left = rect.left + window.scrollX + paddingLeft + textWidth;
+                    const top = rect.top + window.scrollY + (rect.height - parseFloat(cs.fontSize || 16)) / 2;
+
+                    this._caretEl.style.left = `${left}px`;
+                    this._caretEl.style.top = `${top}px`;
+                    this._caretEl.style.display = 'block';
+                } catch (e) {
+                    try { this._caretEl.style.display = 'none'; } catch (e) {}
+                }
+            };
+
+            // hide caret on blur, show on focus
+            input.addEventListener('focus', () => { try { this.updateCursor(); this._caretEl.style.display = 'block'; } catch (e) {} });
+            input.addEventListener('blur', () => { try { this._caretEl.style.display = 'none'; } catch (e) {} });
+            input.addEventListener('input', () => { try { this.updateCursor(); } catch (e) {} });
+            input.addEventListener('keydown', () => { try { setTimeout(() => this.updateCursor(), 0); } catch (e) {} });
+
+            // initial update
+            setTimeout(() => { try { this.updateCursor(); } catch (e) {} }, 50);
+        } catch (e) {}
+    }
+
+    // Mobile / narrow screens: show a quick bar with buttons to explore the site
+    setupMobileQuickBar() {
+        try {
+            if (this._mobileBarSetup) return;
+            this._mobileBarSetup = true;
+
+            const isMobileOrNarrow = () => {
+                try { return window.innerWidth < 900 || ('ontouchstart' in window) || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || ''); } catch (e) { return false; }
+            };
+
+            if (!isMobileOrNarrow()) return;
+
+            const container = document.getElementById('terminalContainer') || document.body;
+
+            // remove any existing bar first
+            const existing = document.querySelector('.rivs-mobile-quickbar');
+            if (existing) existing.remove();
+
+            const bar = document.createElement('div');
+            bar.className = 'rivs-mobile-quickbar';
+            bar.style.position = 'fixed';
+            bar.style.bottom = '64px';
+            bar.style.left = '8px';
+            bar.style.right = '8px';
+            bar.style.display = 'flex';
+            bar.style.gap = '8px';
+            bar.style.zIndex = '10001';
+            bar.style.padding = '8px';
+            bar.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25))';
+            bar.style.borderRadius = '12px';
+            bar.style.backdropFilter = 'blur(6px)';
+            bar.style.overflowX = 'auto';
+            bar.style.whiteSpace = 'nowrap';
+            bar.style.alignItems = 'center';
+            bar.style.boxShadow = '0 6px 18px rgba(0,0,0,0.4)';
+
+            // build actions from available commands (keep sensible ordering)
+            const preferred = ['about','projects','skills','contact','help','quote','surprise','neo','color','theme','clear','snake','pong'];
+            const actions = [];
+            preferred.forEach(p => { if (this.allCommands.includes(p)) actions.push(p); });
+            // add any remaining commands
+            this.allCommands.forEach(cmd => { if (!actions.includes(cmd)) actions.push(cmd); });
+
+            actions.forEach(cmd => {
+                const btn = document.createElement('button');
+                btn.className = 'rivs-quick-btn';
+                btn.textContent = cmd.replace(/-/g,' ');
+                btn.style.padding = '6px 12px';
+                btn.style.fontSize = '13px';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '8px';
+                btn.style.background = 'rgba(255,255,255,0.04)';
+                btn.style.color = 'var(--neon-green, #00ff88)';
+                btn.style.cursor = 'pointer';
+                btn.style.display = 'inline-flex';
+                btn.style.alignItems = 'center';
+                btn.style.flex = '0 0 auto';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    try { this.executeCommand(cmd); } catch (err) { }
+                });
+                bar.appendChild(btn);
+            });
+
+            // hide/disable the typed input on mobile so site is navigable via buttons only
+            try {
+                const inp = this.terminalInput;
+                if (inp && this._isMobile) {
+                    inp.style.display = 'none';
+                    inp.setAttribute('aria-hidden', 'true');
+                    try { inp.disabled = true; } catch (e) {}
+                    // hide the caret if created
+                    try { if (this._caretEl) this._caretEl.style.display = 'none'; } catch (e) {}
+                }
+            } catch (e) {}
+
+            // append to body to avoid any container-level hiding on mobile
+            try { document.body.appendChild(bar); } catch (e) { container.appendChild(bar); }
+
+            // On mobile ensure quick-bar is top-most and not blocked by other overlays
+            if (this._isMobile) {
+                try {
+                    bar.style.zIndex = '2147483647';
+                    bar.style.pointerEvents = 'auto';
+                    bar.style.touchAction = 'manipulation';
+
+                    const selectors = ['.horizontal-sweep-line', '.boot-sequence-container', '#musicCard', '.neo-container', '.top-center-bar', '#taskbar'];
+                    selectors.forEach(sel => {
+                        try {
+                            const el = document.querySelector(sel);
+                            if (el) {
+                                el.style.pointerEvents = 'none';
+                                // if it's a full-width overlay, push it back
+                                try { el.style.zIndex = '0'; } catch (e) {}
+                            }
+                        } catch (e) {}
+                    });
+                    // remove persistent bottom taskbar element on mobile so it cannot block UI
+                    try {
+                        const tb = document.getElementById('taskbar');
+                        if (tb) {
+                            // remove any taskbar buttons first
+                            try { Array.from(tb.children).forEach(c => c.remove()); } catch (e) {}
+                            tb.remove();
+                        }
+                    } catch (e) {}
+                    try { const bb = document.querySelector('.bottom-bar'); if (bb) bb.style.display = 'none'; } catch (e) {}
+                    try { const footer = document.querySelector('footer') || document.getElementById('footer'); if (footer) footer.style.display = 'none'; } catch (e) {}
+                } catch (e) {}
+            }
+        } catch (e) {}
     }
 
     loadSettings() {
@@ -185,6 +390,8 @@ class RetroTerminal {
             const matches = this.allCommands.filter(cmd => cmd.startsWith(val));
             if (!matches || matches.length === 0) { this.hideAutocomplete(); return; }
 
+            if (matches.some(m => m === val)) { this.hideAutocomplete(); return; }
+
             this.autocompleteMatches = matches;
             if (this.autocompleteIndex >= matches.length) this.autocompleteIndex = matches.length - 1;
             if (this.autocompleteIndex < 0) this.autocompleteIndex = -1;
@@ -269,6 +476,11 @@ class RetroTerminal {
 
     updateDateTime() {
         try {
+            if (this._isMobile) {
+                // remove any existing date/time bar on mobile
+                try { const existingBar = document.querySelector('.top-center-bar'); if (existingBar) existingBar.remove(); } catch (e) {}
+                return;
+            }
             let bar = document.querySelector('.top-center-bar');
             if (!bar) { bar = document.createElement('div'); bar.className = 'top-center-bar'; document.body.appendChild(bar); }
             const now = new Date();
@@ -871,6 +1083,17 @@ class RetroTerminal {
         this.windowsContainer.appendChild(window);
         this.windows.push(window);
 
+        // ensure content is scrollable (important for mobile)
+        try {
+            const contentEl = window.querySelector('.window-content');
+            if (contentEl) {
+                contentEl.style.overflow = 'auto';
+                contentEl.style.maxHeight = '70vh';
+                contentEl.style.webkitOverflowScrolling = 'touch';
+                contentEl.style.position = 'relative';
+            }
+        } catch (e) {}
+
         // Display the window title as a playful filename (e.g. help.txt, about-me.pdf)
         try {
             const titleEl = window.querySelector('.window-title');
@@ -1058,7 +1281,6 @@ class RetroTerminal {
         };
 
         header.addEventListener('touchstart', handleTouchStart, { passive: false });
-        content.addEventListener('touchstart', handleTouchStart, { passive: false });
 
         document.addEventListener('mousemove', drag, true);
         document.addEventListener('mouseup', stopDrag, true);
@@ -1427,7 +1649,14 @@ restartAnimation();
 // music
 document.addEventListener('DOMContentLoaded', () => {
     try {
+        const _isMobileLocal = (window.innerWidth < 900) || ('ontouchstart' in window) || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
         const card = document.getElementById('musicCard');
+        if (_isMobileLocal) {
+            // hide music UI on mobile if present
+            try { if (card) card.style.display = 'none'; } catch (e) {}
+            try { const audioEl = document.getElementById('musicAudio'); if (audioEl) audioEl.pause(); } catch (e) {}
+            return; // skip music controls on mobile
+        }
         const btn = document.getElementById('musicTogglePlay');
         const prevBtn = document.getElementById('musicPrev');
         const nextBtn = document.getElementById('musicNext');
