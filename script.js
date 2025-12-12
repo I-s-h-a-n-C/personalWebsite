@@ -1424,7 +1424,7 @@ function restartAnimation() {
 
 restartAnimation();
 
-// Music player wiring — single play/pause icon button (no hide persistence)
+// music
 document.addEventListener('DOMContentLoaded', () => {
     try {
         const card = document.getElementById('musicCard');
@@ -1438,12 +1438,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!card || !btn || !audio || !titleEl || !artistEl) return;
 
-        // Hardcoded playlist — add your tracks here (users cannot add)
+        // Hardcoded playlist — edit these entries to add songs (users cannot add at runtime)
         const playlist = [
-            { src: audio.getAttribute('src') || 'assets/track1.mp3', title: titleEl.textContent || 'Track 1', artist: artistEl.textContent || 'Artist', art: art.getAttribute('src') || 'assets/artist1.jpg' },
-            // Example extra tracks (uncomment or edit to add)
-            // { src: 'assets/track2.mp3', title: 'Second Track', artist: 'Artist 2', art: 'assets/artist2.jpg' },
-            // { src: 'assets/track3.mp3', title: 'Third Track', artist: 'Artist 3', art: 'assets/artist3.jpg' },
+            { src: audio.getAttribute('src') || 'christmaskids.mp3', title: titleEl.textContent || 'Christmas Kids', artist: artistEl.textContent || 'Roar', art: art.getAttribute('src') || 'assets/artist1.jpg' },
+            { src: 'assets/track2.mp3', title: 'Glimpse of Us', artist: 'Joji', art: 'glimpseofus.jpg' }
         ];
 
         let currentIndex = 0;
