@@ -31,7 +31,7 @@ You type commands into the terminal and press enter to do things.
 ### New Stuff
 Since my last edit, I changed/added some stuff, so here they are:
 * music - I added a music player with some of my favorite songs (more to be added soon)
-* liquig glass -  I added a liquid glass effect to the pages
+* liquid glass -  I added a liquid glass effect to the pages
 * animation - I added a physics animation to dragging around the pages
 * icons -  all around, I swapped emojis for icons from w3
 * autocomplete - I added autocomplete by pressing tab, and also choices under where you type in commands
