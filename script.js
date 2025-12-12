@@ -1224,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) {}
         };
-
+        
         // Ensure initial state respects small viewports
         applyAsciiFallback();
 
