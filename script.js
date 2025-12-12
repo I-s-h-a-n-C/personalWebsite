@@ -1106,7 +1106,67 @@ class RetroTerminal {
 
         this.focusWindow(window);
 
-        this.makeDraggable(window);
+        // On mobile use a full-screen, scrollable window and disable dragging to allow touch scroll
+        try {
+            const contentEl = window.querySelector('.window-content');
+            if (this._isMobile) {
+                // layout as fixed full-screen panel (leave space for quick-bar)
+                window.style.position = 'fixed';
+                window.style.left = '8px';
+                window.style.right = '8px';
+                window.style.top = '8px';
+                window.style.bottom = '96px';
+                window.style.width = 'auto';
+                window.style.height = 'auto';
+                window.style.maxHeight = 'calc(100vh - 112px)';
+                window.style.overflow = 'hidden';
+                window.style.zIndex = Math.max(10000, this.windowZIndex + 1000).toString();
+
+                const controls = window.querySelector('.window-controls');
+                if (controls) controls.style.display = 'none';
+
+                // add a small floating close button for mobile so users can dismiss the window
+                try {
+                    const mClose = document.createElement('button');
+                    mClose.className = 'mobile-close-btn';
+                    mClose.setAttribute('aria-label', 'Close');
+                    mClose.innerHTML = '&#10005;';
+                    mClose.style.position = 'absolute';
+                    mClose.style.top = '1px';
+                    mClose.style.right = '12px';
+                    mClose.style.width = '36px';
+                    mClose.style.height = '36px';
+                    mClose.style.borderRadius = '18px';
+                    mClose.style.border = 'none';
+                    mClose.style.background = 'rgba(0,0,0,0.6)';
+                    mClose.style.color = 'var(--neon-green, #00ff88)';
+                    mClose.style.display = 'flex';
+                    mClose.style.alignItems = 'center';
+                    mClose.style.justifyContent = 'center';
+                    mClose.style.zIndex = (parseInt(window.style.zIndex || '10000') + 10).toString();
+                    mClose.style.cursor = 'pointer';
+                    mClose.style.boxShadow = '0 4px 10px rgba(0,0,0,0.4)';
+                    mClose.addEventListener('click', (ev) => { ev.stopPropagation(); try { this.closeWindow(window); } catch (e) {} });
+                    window.appendChild(mClose);
+                } catch (e) {}
+
+                if (contentEl) {
+                    contentEl.style.overflow = 'auto';
+                    contentEl.style.maxHeight = 'calc(100vh - 140px)';
+                    contentEl.style.webkitOverflowScrolling = 'touch';
+                    contentEl.style.padding = '12px';
+                }
+            } else {
+                // desktop: keep draggable behaviour
+                this.makeDraggable(window);
+                if (contentEl) {
+                    // ensure reasonable desktop max height
+                    contentEl.style.maxHeight = contentEl.style.maxHeight || '70vh';
+                }
+            }
+        } catch (e) {
+            try { this.makeDraggable(window); } catch (err) {}
+        }
 
         const closeBtn = window.querySelector('.window-btn.close');
         const minimizeBtn = window.querySelector('.window-btn.minimize');
