@@ -13,10 +13,26 @@ class RetroTerminal {
         this.typingSpeed = 30;
         this.minimizedWindows = [];
         this.allCommands = ['help', 'about', 'projects', 'skills', 'contact', 'quote', 'surprise', 'neo', 'color', 'theme', 'clear', 'exit', 'quit', 'snake', 'pong'];
+        this.commandData = [
+            { name: 'help', desc: 'available commands' },
+            { name: 'about', desc: 'jus a lil about me' },
+            { name: 'projects', desc: 'my projects' },
+            { name: 'skills', desc: 'what I can do' },
+            { name: 'contact', desc: 'contact me' },
+            { name: 'quote', desc: 'wisdom' },
+            { name: 'surprise', desc: 'who knows' },
+            { name: 'neo', desc: 'what movie is that from??' },
+            { name: 'color', desc: 'switch color scheme' },
+            { name: 'theme', desc: 'switch terminal theme' },
+            { name: 'clear', desc: 'clear terminal' },
+            { name: 'snake', desc: 'play a fun lil game' },
+            { name: 'pong', desc: 'not of the ping variety' },
+            { name: 'exit', desc: 'self explanatory' }
+        ];
         this.autocompleteMatches = [];
         this.autocompleteIndex = -1;
         this.suggestionEl = null;
-        
+
         this.init();
     }
 
@@ -28,12 +44,12 @@ class RetroTerminal {
 
         this.terminalInput.addEventListener('keydown', (e) => this.handleKeyPress(e));
         this.terminalInput.addEventListener('input', () => {
-            try { this.updateCursor && this.updateCursor(); } catch (e) {}
-            try { this.updateAutocomplete(); } catch (e) {}
+            try { this.updateCursor && this.updateCursor(); } catch (e) { }
+            try { this.updateAutocomplete(); } catch (e) { }
         });
-        this.terminalInput.addEventListener('click', () => { try { this.updateCursor && this.updateCursor(); } catch (e) {} });
-        this.terminalInput.addEventListener('keyup', () => { try { this.updateCursor && this.updateCursor(); } catch (e) {} });
-        this.terminalInput.addEventListener('focus', () => { try { this.updateCursor && this.updateCursor(); } catch (e) {} });
+        this.terminalInput.addEventListener('click', () => { try { this.updateCursor && this.updateCursor(); } catch (e) { } });
+        this.terminalInput.addEventListener('keyup', () => { try { this.updateCursor && this.updateCursor(); } catch (e) { } });
+        this.terminalInput.addEventListener('focus', () => { try { this.updateCursor && this.updateCursor(); } catch (e) { } });
         this.terminalInput.addEventListener('blur', () => {
         });
 
@@ -50,11 +66,11 @@ class RetroTerminal {
 
         this.windowsContainer.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        try { this.loadSettings(); } catch (e) {}
+        try { this.loadSettings(); } catch (e) { }
 
         // Ensure blinking caret and mobile quick bar exist
-        try { this.setupBlinkingCursor(); } catch (e) {}
-        try { this.setupMobileQuickBar(); } catch (e) {}
+        try { this.setupBlinkingCursor(); } catch (e) { }
+        try { this.setupMobileQuickBar(); } catch (e) { }
         this.updateDateTime();
         setInterval(() => this.updateDateTime(), 1000);
 
@@ -65,7 +81,8 @@ class RetroTerminal {
             if (isEditing) return;
             if (e.key === '/') {
                 e.preventDefault();
-                try { this.terminalInput.focus();
+                try {
+                    this.terminalInput.focus();
                     const start = this.terminalInput.selectionStart || 0;
                     const end = this.terminalInput.selectionEnd || 0;
                     const val = this.terminalInput.value || '';
@@ -91,17 +108,17 @@ class RetroTerminal {
                     const val = this.terminalInput.value || '';
                     this.terminalInput.value = val.slice(0, start) + e.key + val.slice(start);
                     this.terminalInput.selectionStart = this.terminalInput.selectionEnd = start + 1;
-                    try { this.updateCursor(); } catch (err) {}
+                    try { this.updateCursor(); } catch (err) { }
                 } catch (err) {
                     // fallback: just focus
-                    try { this.terminalInput.focus(); } catch (e) {}
+                    try { this.terminalInput.focus(); } catch (e) { }
                 }
             } else {
-                try { this.terminalInput.focus(); } catch (e) {}
+                try { this.terminalInput.focus(); } catch (e) { }
             }
         }, false);
 
-        setTimeout(() => { try { this.updateCursor && this.updateCursor(); } catch (e) {} }, 0);
+        setTimeout(() => { try { this.updateCursor && this.updateCursor(); } catch (e) { } }, 0);
     }
 
     // Create a blinking fake caret overlay that follows the input text
@@ -171,22 +188,23 @@ class RetroTerminal {
                     this._caretEl.style.top = `${top}px`;
                     this._caretEl.style.display = 'block';
                 } catch (e) {
-                    try { this._caretEl.style.display = 'none'; } catch (e) {}
+                    try { this._caretEl.style.display = 'none'; } catch (e) { }
                 }
             };
 
             // hide caret on blur, show on focus
-            input.addEventListener('focus', () => { try { this.updateCursor(); this._caretEl.style.display = 'block'; } catch (e) {} });
-            input.addEventListener('blur', () => { try { this._caretEl.style.display = 'none'; } catch (e) {} });
-            input.addEventListener('input', () => { try { this.updateCursor(); } catch (e) {} });
-            input.addEventListener('keydown', () => { try { setTimeout(() => this.updateCursor(), 0); } catch (e) {} });
+            input.addEventListener('focus', () => { try { this.updateCursor(); this._caretEl.style.display = 'block'; } catch (e) { } });
+            input.addEventListener('blur', () => { try { this._caretEl.style.display = 'none'; } catch (e) { } });
+            input.addEventListener('input', () => { try { this.updateCursor(); } catch (e) { } });
+            input.addEventListener('keydown', () => { try { setTimeout(() => this.updateCursor(), 0); } catch (e) { } });
 
             // initial update
-            setTimeout(() => { try { this.updateCursor(); } catch (e) {} }, 50);
-        } catch (e) {}
+            setTimeout(() => { try { this.updateCursor(); } catch (e) { } }, 50);
+        } catch (e) { }
     }
 
     // Mobile / narrow screens: show a quick bar with buttons to explore the site
+    // Mobile / narrow screens: show a vertical sheet with buttons to explore the site
     setupMobileQuickBar() {
         try {
             if (this._mobileBarSetup) return;
@@ -201,53 +219,36 @@ class RetroTerminal {
             const container = document.getElementById('terminalContainer') || document.body;
 
             // remove any existing bar first
-            const existing = document.querySelector('.rivs-mobile-quickbar');
+            const existing = document.querySelector('.rivs-mobile-sheet');
             if (existing) existing.remove();
 
-            const bar = document.createElement('div');
-            bar.className = 'rivs-mobile-quickbar';
-            bar.style.position = 'fixed';
-            bar.style.bottom = '64px';
-            bar.style.left = '8px';
-            bar.style.right = '8px';
-            bar.style.display = 'flex';
-            bar.style.gap = '8px';
-            bar.style.zIndex = '10001';
-            bar.style.padding = '8px';
-            bar.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25))';
-            bar.style.borderRadius = '12px';
-            bar.style.backdropFilter = 'blur(6px)';
-            bar.style.overflowX = 'auto';
-            bar.style.whiteSpace = 'nowrap';
-            bar.style.alignItems = 'center';
-            bar.style.boxShadow = '0 6px 18px rgba(0,0,0,0.4)';
+            const sheet = document.createElement('div');
+            sheet.className = 'rivs-mobile-sheet';
+            // Styles will be handled in CSS, but fundamental structure is here
 
-            // build actions from available commands (keep sensible ordering)
-            const preferred = ['about','projects','skills','contact','help','quote','surprise','neo','color','theme','clear','snake','pong'];
-            const actions = [];
-            preferred.forEach(p => { if (this.allCommands.includes(p)) actions.push(p); });
-            // add any remaining commands
-            this.allCommands.forEach(cmd => { if (!actions.includes(cmd)) actions.push(cmd); });
-
-            actions.forEach(cmd => {
+            // build actions from centralized commandData
+            this.commandData.forEach(cmd => {
                 const btn = document.createElement('button');
-                btn.className = 'rivs-quick-btn';
-                btn.textContent = cmd.replace(/-/g,' ');
-                btn.style.padding = '6px 12px';
-                btn.style.fontSize = '13px';
-                btn.style.border = 'none';
-                btn.style.borderRadius = '8px';
-                btn.style.background = 'rgba(255,255,255,0.04)';
-                btn.style.color = 'var(--neon-green, #00ff88)';
-                btn.style.cursor = 'pointer';
-                btn.style.display = 'inline-flex';
-                btn.style.alignItems = 'center';
-                btn.style.flex = '0 0 auto';
+                btn.className = 'rivs-sheet-btn';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'sheet-cmd-name';
+                nameSpan.textContent = cmd.name;
+
+                const descSpan = document.createElement('span');
+                descSpan.className = 'sheet-cmd-desc';
+                descSpan.textContent = cmd.desc;
+
+                btn.appendChild(nameSpan);
+                btn.appendChild(descSpan);
+
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    try { this.executeCommand(cmd); } catch (err) { }
+                    // Close sheet momentarily or just execute? 
+                    // For now just execute. The sheet stays open as a persistent nav.
+                    try { this.executeCommand(cmd.name); } catch (err) { }
                 });
-                bar.appendChild(btn);
+                sheet.appendChild(btn);
             });
 
             // hide/disable the typed input on mobile so site is navigable via buttons only
@@ -256,21 +257,19 @@ class RetroTerminal {
                 if (inp && this._isMobile) {
                     inp.style.display = 'none';
                     inp.setAttribute('aria-hidden', 'true');
-                    try { inp.disabled = true; } catch (e) {}
+                    try { inp.disabled = true; } catch (e) { }
                     // hide the caret if created
-                    try { if (this._caretEl) this._caretEl.style.display = 'none'; } catch (e) {}
+                    try { if (this._caretEl) this._caretEl.style.display = 'none'; } catch (e) { }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
-            // append to body to avoid any container-level hiding on mobile
-            try { document.body.appendChild(bar); } catch (e) { container.appendChild(bar); }
+            // append to body
+            try { document.body.appendChild(sheet); } catch (e) { container.appendChild(sheet); }
 
-            // On mobile ensure quick-bar is top-most and not blocked by other overlays
+            // On mobile ensure sheet is top-most
             if (this._isMobile) {
                 try {
-                    bar.style.zIndex = '2147483647';
-                    bar.style.pointerEvents = 'auto';
-                    bar.style.touchAction = 'manipulation';
+                    sheet.style.zIndex = '2147483647';
 
                     const selectors = ['.horizontal-sweep-line', '.boot-sequence-container', '#musicCard', '.neo-container', '.top-center-bar', '#taskbar'];
                     selectors.forEach(sel => {
@@ -278,25 +277,19 @@ class RetroTerminal {
                             const el = document.querySelector(sel);
                             if (el) {
                                 el.style.pointerEvents = 'none';
-                                // if it's a full-width overlay, push it back
-                                try { el.style.zIndex = '0'; } catch (e) {}
+                                try { el.style.zIndex = '0'; } catch (e) { }
                             }
-                        } catch (e) {}
+                        } catch (e) { }
                     });
-                    // remove persistent bottom taskbar element on mobile so it cannot block UI
+
+                    // remove persistent bottom taskbar element on mobile
                     try {
                         const tb = document.getElementById('taskbar');
-                        if (tb) {
-                            // remove any taskbar buttons first
-                            try { Array.from(tb.children).forEach(c => c.remove()); } catch (e) {}
-                            tb.remove();
-                        }
-                    } catch (e) {}
-                    try { const bb = document.querySelector('.bottom-bar'); if (bb) bb.style.display = 'none'; } catch (e) {}
-                    try { const footer = document.querySelector('footer') || document.getElementById('footer'); if (footer) footer.style.display = 'none'; } catch (e) {}
-                } catch (e) {}
+                        if (tb) tb.remove();
+                    } catch (e) { }
+                } catch (e) { }
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     loadSettings() {
@@ -305,7 +298,7 @@ class RetroTerminal {
             const storedTheme = localStorage.getItem('rivs_theme');
             if (storedScheme) this.switchColorScheme(storedScheme, true);
             if (storedTheme) this.switchTheme(storedTheme, true);
-        } catch (e) {  }
+        } catch (e) { }
     }
 
     ensurePromptVisible() {
@@ -439,7 +432,7 @@ class RetroTerminal {
             // update active class
             const items = this.suggestionEl ? Array.from(this.suggestionEl.children) : [];
             items.forEach((it, i) => it.classList.toggle('active', i === this.autocompleteIndex));
-        } catch (e) {}
+        } catch (e) { }
     }
 
     acceptAutocomplete(index) {
@@ -450,7 +443,7 @@ class RetroTerminal {
             this.terminalInput.focus();
             this.terminalInput.selectionStart = this.terminalInput.selectionEnd = this.terminalInput.value.length;
             this.hideAutocomplete();
-        } catch (e) {}
+        } catch (e) { }
     }
 
     hideAutocomplete() {
@@ -458,7 +451,7 @@ class RetroTerminal {
             if (this.suggestionEl) this.suggestionEl.style.display = 'none';
             this.autocompleteMatches = [];
             this.autocompleteIndex = -1;
-        } catch (e) {}
+        } catch (e) { }
     }
 
     autocompleteCommand() {
@@ -466,7 +459,7 @@ class RetroTerminal {
         if (!input) return;
 
         const matches = this.allCommands.filter(cmd => cmd.startsWith(input));
-        
+
         if (matches.length === 1) {
             this.terminalInput.value = matches[0];
         } else if (matches.length > 1) {
@@ -478,7 +471,7 @@ class RetroTerminal {
         try {
             if (this._isMobile) {
                 // remove any existing date/time bar on mobile
-                try { const existingBar = document.querySelector('.top-center-bar'); if (existingBar) existingBar.remove(); } catch (e) {}
+                try { const existingBar = document.querySelector('.top-center-bar'); if (existingBar) existingBar.remove(); } catch (e) { }
                 return;
             }
             let bar = document.querySelector('.top-center-bar');
@@ -563,43 +556,26 @@ class RetroTerminal {
     }
 
     addOutputLine(text, className = '') {
-        try { this.trimOutput(200); } catch (e) {}
+        try { this.trimOutput(200); } catch (e) { }
         const line = document.createElement('div'); line.className = `terminal-line ${className}`; this.terminalOutput.appendChild(line);
         let charIndex = 0;
         const typeCharacter = () => {
             if (charIndex < text.length) {
                 line.innerHTML += text[charIndex++];
-                try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
-                try { this.ensurePromptVisible(); } catch (e) {}
+                try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) { }
+                try { this.ensurePromptVisible(); } catch (e) { }
                 setTimeout(typeCharacter, this.typingSpeed);
             }
         };
         typeCharacter();
-        try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) {}
-        try { this.ensurePromptVisible(); } catch (e) {}
+        try { this.terminalOutput.scrollTop = this.terminalOutput.scrollHeight; } catch (e) { }
+        try { this.ensurePromptVisible(); } catch (e) { }
     }
 
     showHelp() {
-        const commands = [
-            { name: 'help', desc: 'available commands' },
-            { name: 'about', desc: 'jus a lil about me' },
-            { name: 'projects', desc: 'my projects' },
-            { name: 'skills', desc: 'what I can do' },
-            { name: 'contact', desc: 'contact me' },
-            { name: 'quote', desc: 'wisdom' },
-            { name: 'surprise', desc: 'who knows' },
-            { name: 'neo', desc: 'what movie is that from??' },
-            { name: 'color [scheme]', desc: 'switch color scheme' },
-            { name: 'theme [name]', desc: 'switch terminal theme' },
-            { name: 'clear', desc: 'clear terminal' },
-            { name: 'snake', desc: 'play a fun lil game' },
-            { name: 'pong', desc: 'not of the ping variety' },
-            { name: 'exit', desc: 'self explanatory' }
-        ];
-
         this.createWindow('Help', () => {
             let html = '<ul class="command-list">';
-            commands.forEach(cmd => {
+            this.commandData.forEach(cmd => {
                 html += `
                     <li class="command-item">
                         <span class="command-name">${cmd.name}</span>
@@ -736,18 +712,18 @@ class RetroTerminal {
 
     showquote() {
         const quotes = [
-        "My code works. I just don’t actually know why. - me",
-        "I don’t actually fix bugs. I just make new features that hide them. - me",
-        "I don’t have errors. - me",
-        "If my code compiles on the first try, something is wrong with Arduino IDE. - me",
-        "I don’t delete code. - me",
-        "My code isn’t slow. - me",
-        "That wasn't me - me",
-        "Thats a feature not a bug. - me",
+            "My code works. I just don’t actually know why. - me",
+            "I don’t actually fix bugs. I just make new features that hide them. - me",
+            "I don’t have errors. - me",
+            "If my code compiles on the first try, something is wrong with Arduino IDE. - me",
+            "I don’t delete code. - me",
+            "My code isn’t slow. - me",
+            "That wasn't me - me",
+            "Thats a feature not a bug. - me",
         ];
 
         const quote = quotes[Math.floor(Math.random() * quotes.length)];
-        
+
         this.createWindow('quote', () => {
             return `<div class="quote-quote">${quote}</div>`;
         });
@@ -755,7 +731,7 @@ class RetroTerminal {
 
     surprise() {
         this.addOutputLine('I wonder what this does', 'info-text');
-        
+
         setTimeout(() => {
             window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
         }, 2000);
@@ -769,20 +745,20 @@ class RetroTerminal {
 
         const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
         const columns = Math.floor(window.innerWidth / 20);
-        
+
         for (let i = 0; i < columns; i++) {
             const column = document.createElement('div');
             column.className = 'neo-column';
             column.style.left = `${i * 20}px`;
             column.style.animationDuration = `${Math.random() * 3 + 2}s`;
             column.style.opacity = Math.random() * 0.5 + 0.5;
-            
+
             let text = '';
             for (let j = 0; j < 30; j++) {
                 text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
             }
             column.innerHTML = text;
-            
+
             neoContainer.appendChild(column);
         }
 
@@ -829,7 +805,7 @@ class RetroTerminal {
         root.style.setProperty('--neon-pink', colors.secondary);
         root.style.setProperty('--neon-cyan', colors.accent);
 
-        try { localStorage.setItem('rivs_colorScheme', scheme); } catch (e) {}
+        try { localStorage.setItem('rivs_colorScheme', scheme); } catch (e) { }
 
         if (!silent) this.addOutputLine(`Color scheme changed to "${scheme}"`, 'success-text');
     }
@@ -852,7 +828,7 @@ class RetroTerminal {
             themes['dos'] = themes['ms dos'];
             themes['msdos'] = themes['ms dos'];
             themes['ms-dos'] = themes['ms dos'];
-        } catch (e) {}
+        } catch (e) { }
 
         if (!themes[theme]) {
             if (!silent) this.addOutputLine(`Unknown theme: ${theme}. Available: default, amber, monochrome, ms dos`, 'error-text');
@@ -862,7 +838,7 @@ class RetroTerminal {
         this.terminalTheme = theme;
         const themeColors = themes[theme];
         const container = document.getElementById('terminalContainer');
-        
+
         if (container) {
             if (theme === 'default') {
                 container.style.backgroundColor = '';
@@ -877,7 +853,7 @@ class RetroTerminal {
             });
         }
 
-        try { localStorage.setItem('rivs_theme', theme); } catch (e) {}
+        try { localStorage.setItem('rivs_theme', theme); } catch (e) { }
 
         if (!silent) this.addOutputLine(`Terminal theme changed to "${theme}"`, 'success-text');
     }
@@ -918,7 +894,7 @@ class RetroTerminal {
             const cols = Math.floor(canvas.width / size);
             const rows = Math.floor(canvas.height / size);
 
-            let snake = [{ x: Math.floor(cols/2), y: Math.floor(rows/2) }];
+            let snake = [{ x: Math.floor(cols / 2), y: Math.floor(rows / 2) }];
             let dir = { x: 0, y: 0 };
             let food = null;
             let running = true;
@@ -971,15 +947,15 @@ class RetroTerminal {
                 }
 
                 ctx.fillStyle = '#000';
-                ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 if (food) {
                     ctx.fillStyle = '#ff3';
-                    ctx.fillRect(food.x*size, food.y*size, size, size);
+                    ctx.fillRect(food.x * size, food.y * size, size, size);
                 }
                 ctx.fillStyle = '#0f0';
                 snake.forEach((s, i) => {
-                    ctx.fillStyle = i===0 ? '#0ff' : '#0f0';
-                    ctx.fillRect(s.x*size+1, s.y*size+1, size-2, size-2);
+                    ctx.fillStyle = i === 0 ? '#0ff' : '#0f0';
+                    ctx.fillRect(s.x * size + 1, s.y * size + 1, size - 2, size - 2);
                 });
 
                 requestAnimationFrame(frame);
@@ -1000,7 +976,7 @@ class RetroTerminal {
             const ballSize = 8;
             let playerY = (canvas.height - ph) / 2;
             let aiY = (canvas.height - ph) / 2;
-            let ball = { x: canvas.width/2, y: canvas.height/2, vx: 4*(Math.random()>0.5?1:-1), vy: 2*(Math.random()>0.5?1:-1) };
+            let ball = { x: canvas.width / 2, y: canvas.height / 2, vx: 4 * (Math.random() > 0.5 ? 1 : -1), vy: 2 * (Math.random() > 0.5 ? 1 : -1) };
             let playerScore = 0, aiScore = 0;
             let running = true;
 
@@ -1016,7 +992,7 @@ class RetroTerminal {
                 if (keyState['s'] || keyState['ArrowDown']) playerY += 6;
                 playerY = Math.max(0, Math.min(canvas.height - ph, playerY));
 
-                const centerAI = aiY + ph/2;
+                const centerAI = aiY + ph / 2;
                 if (centerAI < ball.y - 10) aiY += 4; else if (centerAI > ball.y + 10) aiY -= 4;
                 aiY = Math.max(0, Math.min(canvas.height - ph, aiY));
 
@@ -1026,19 +1002,19 @@ class RetroTerminal {
                 if (ball.x <= pw && ball.y + ballSize >= playerY && ball.y <= playerY + ph) { ball.vx = Math.abs(ball.vx); ball.vx *= 1.05; }
                 if (ball.x + ballSize >= canvas.width - pw && ball.y + ballSize >= aiY && ball.y <= aiY + ph) { ball.vx = -Math.abs(ball.vx); ball.vx *= 1.03; }
 
-                if (ball.x < -50) { aiScore++; ball.x = canvas.width/2; ball.y = canvas.height/2; ball.vx = 4; ball.vy = 2*(Math.random()>0.5?1:-1); }
-                if (ball.x > canvas.width + 50) { playerScore++; ball.x = canvas.width/2; ball.y = canvas.height/2; ball.vx = -4; ball.vy = 2*(Math.random()>0.5?1:-1); }
+                if (ball.x < -50) { aiScore++; ball.x = canvas.width / 2; ball.y = canvas.height / 2; ball.vx = 4; ball.vy = 2 * (Math.random() > 0.5 ? 1 : -1); }
+                if (ball.x > canvas.width + 50) { playerScore++; ball.x = canvas.width / 2; ball.y = canvas.height / 2; ball.vx = -4; ball.vy = 2 * (Math.random() > 0.5 ? 1 : -1); }
 
-                ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.fillStyle = '#444'; for (let y=0;y<canvas.height;y+=20) ctx.fillRect(canvas.width/2-1, y, 2, 10);
+                ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#444'; for (let y = 0; y < canvas.height; y += 20) ctx.fillRect(canvas.width / 2 - 1, y, 2, 10);
                 ctx.fillStyle = '#0f0'; ctx.fillRect(0, playerY, pw, ph);
-                ctx.fillStyle = '#f00'; ctx.fillRect(canvas.width-pw, aiY, pw, ph);
+                ctx.fillStyle = '#f00'; ctx.fillRect(canvas.width - pw, aiY, pw, ph);
                 ctx.fillStyle = '#fff'; ctx.fillRect(ball.x, ball.y, ballSize, ballSize);
-                ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.fillText(playerScore, canvas.width/2 - 40, 30); ctx.fillText(aiScore, canvas.width/2 + 20, 30);
+                ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.fillText(playerScore, canvas.width / 2 - 40, 30); ctx.fillText(aiScore, canvas.width / 2 + 20, 30);
 
                 if (playerScore >= 5 || aiScore >= 5) {
                     running = false;
-                    const winner = playerScore >=5 ? 'Player' : 'Terminal';
+                    const winner = playerScore >= 5 ? 'Player' : 'Terminal';
                     this.addOutputLine(`Pong finished: ${winner} wins (${playerScore}-${aiScore})`, 'success-text');
                     window.removeEventListener('keydown', keyHandler); window.removeEventListener('keyup', keyHandler);
                     return;
@@ -1057,7 +1033,7 @@ class RetroTerminal {
         window.className = 'retro-window';
         window.id = windowId;
         window.style.zIndex = ++this.windowZIndex;
-        
+
         const maxX = window.innerWidth - 600;
         const maxY = window.innerHeight - 400;
         const initialLeft = Math.max(50, Math.min(Math.random() * Math.max(0, maxX) + 50, maxX));
@@ -1092,7 +1068,7 @@ class RetroTerminal {
                 contentEl.style.webkitOverflowScrolling = 'touch';
                 contentEl.style.position = 'relative';
             }
-        } catch (e) {}
+        } catch (e) { }
 
         // Display the window title as a playful filename (e.g. help.txt, about-me.pdf)
         try {
@@ -1102,7 +1078,7 @@ class RetroTerminal {
                 titleEl.textContent = fileTitle;
                 window.dataset.fileName = fileTitle;
             }
-        } catch (e) {}
+        } catch (e) { }
 
         this.focusWindow(window);
 
@@ -1146,9 +1122,9 @@ class RetroTerminal {
                     mClose.style.zIndex = (parseInt(window.style.zIndex || '10000') + 10).toString();
                     mClose.style.cursor = 'pointer';
                     mClose.style.boxShadow = '0 4px 10px rgba(0,0,0,0.4)';
-                    mClose.addEventListener('click', (ev) => { ev.stopPropagation(); try { this.closeWindow(window); } catch (e) {} });
+                    mClose.addEventListener('click', (ev) => { ev.stopPropagation(); try { this.closeWindow(window); } catch (e) { } });
                     window.appendChild(mClose);
-                } catch (e) {}
+                } catch (e) { }
 
                 if (contentEl) {
                     contentEl.style.overflow = 'auto';
@@ -1165,7 +1141,7 @@ class RetroTerminal {
                 }
             }
         } catch (e) {
-            try { this.makeDraggable(window); } catch (err) {}
+            try { this.makeDraggable(window); } catch (err) { }
         }
 
         const closeBtn = window.querySelector('.window-btn.close');
@@ -1229,7 +1205,7 @@ class RetroTerminal {
         const content = windowElement.querySelector('.window-content');
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        
+
         const getPosition = () => {
             const rect = windowElement.getBoundingClientRect();
             return { x: rect.left, y: rect.top };
@@ -1248,21 +1224,21 @@ class RetroTerminal {
             if (e.target && e.target.classList.contains('window-btn')) return;
             if (isInteractiveElement(e.target)) return;
             if (e.target && e.target.tagName === 'LABEL') return;
-            
+
             isDragging = true;
             this.focusWindow(windowElement);
-            
+
             const pos = getPosition();
             initialX = pos.x;
             initialY = pos.y;
             startX = e.clientX;
             startY = e.clientY;
-            
+
             windowElement.style.transition = 'none';
             windowElement.style.cursor = 'grabbing';
             windowElement.classList.add('dragging');
             document.body.style.userSelect = 'none';
-            
+
             e.preventDefault();
             e.stopPropagation();
         };
@@ -1308,7 +1284,7 @@ class RetroTerminal {
                 document.body.style.userSelect = '';
                 // Reset transform shortly after releasing
                 setTimeout(() => {
-                    try { windowElement.style.transform = ''; } catch (e) {}
+                    try { windowElement.style.transform = ''; } catch (e) { }
                 }, 100);
             }
         };
@@ -1318,7 +1294,7 @@ class RetroTerminal {
                 startDrag(e);
             }
         });
-        
+
         content.addEventListener('mousedown', (e) => {
             if (!isInteractiveElement(e.target) && e.target.tagName !== 'LABEL') {
                 startDrag(e);
@@ -1329,7 +1305,7 @@ class RetroTerminal {
             if (e.target.classList.contains('window-btn')) return;
             if (isInteractiveElement(e.target)) return;
             if (e.target.tagName === 'LABEL') return;
-            
+
             const touch = e.touches[0];
             startDrag({
                 clientX: touch.clientX,
@@ -1375,7 +1351,7 @@ class RetroTerminal {
     minimizeWindow(window) {
         const title = window.querySelector('.window-title').textContent;
         const isMinimized = window.dataset.minimized === 'true';
-        
+
         if (isMinimized) {
             window.dataset.minimized = 'false';
             window.style.display = 'flex';
@@ -1470,7 +1446,7 @@ class RetroTerminal {
 
     cycleWindows() {
         if (this.windows.length === 0) return;
-        
+
         const currentIndex = this.windows.indexOf(this.currentWindow);
         const nextIndex = (currentIndex + 1) % this.windows.length;
         this.focusWindow(this.windows[nextIndex]);
@@ -1533,7 +1509,7 @@ function startBootSequence(onComplete) {
                                     if (inputEl && typeof inputEl.scrollIntoView === 'function') {
                                         inputEl.scrollIntoView({ block: 'end', inline: 'nearest' });
                                     }
-                                } catch (e) {}
+                                } catch (e) { }
                                 idx++;
                                 setTimeout(next, 120);
                                 return;
@@ -1564,7 +1540,7 @@ function startBootSequence(onComplete) {
                                 if (inputEl && typeof inputEl.scrollIntoView === 'function') {
                                     inputEl.scrollIntoView({ block: 'end', inline: 'nearest' });
                                 }
-                            } catch (e) {}
+                            } catch (e) { }
 
                             const delayBetween = 80 + Math.floor(Math.random() * 140);
                             step++;
@@ -1585,7 +1561,7 @@ function startBootSequence(onComplete) {
                             if (inputEl && typeof inputEl.scrollIntoView === 'function') {
                                 inputEl.scrollIntoView({ block: 'end', inline: 'nearest' });
                             }
-                        } catch (e) {}
+                        } catch (e) { }
                         idx++;
                         setTimeout(next, 140);
                     });
@@ -1649,13 +1625,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         asciiModal.setAttribute('aria-hidden', 'true');
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
         };
 
         applyAsciiFallback();
 
         window.addEventListener('resize', () => {
-            try { applyAsciiFallback(); } catch (e) {}
+            try { applyAsciiFallback(); } catch (e) { }
         }, { passive: true });
 
         if (asciiModal) {
@@ -1697,7 +1673,7 @@ function restartAnimation() {
     line.style.animation = 'none';
     line.offsetHeight;
     line.style.animation = 'sweepDown 6s linear forwards';
-    
+
     setTimeout(() => {
         line.style.animationDelay = '0s';
         restartAnimation();
@@ -1713,8 +1689,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.getElementById('musicCard');
         if (_isMobileLocal) {
             // hide music UI on mobile if present
-            try { if (card) card.style.display = 'none'; } catch (e) {}
-            try { const audioEl = document.getElementById('musicAudio'); if (audioEl) audioEl.pause(); } catch (e) {}
+            try { if (card) card.style.display = 'none'; } catch (e) { }
+            try { const audioEl = document.getElementById('musicAudio'); if (audioEl) audioEl.pause(); } catch (e) { }
             return; // skip music controls on mobile
         }
         const btn = document.getElementById('musicTogglePlay');
@@ -1740,21 +1716,21 @@ document.addEventListener('DOMContentLoaded', () => {
             currentIndex = index;
             const item = playlist[currentIndex] || {};
 
-            try { audio.pause(); } catch (e) {}
+            try { audio.pause(); } catch (e) { }
             try {
                 if (item.src) {
                     audio.src = item.src;
-                    try { audio.load(); } catch (e) {}
-                    try { audio.currentTime = 0; } catch (e) {}
+                    try { audio.load(); } catch (e) { }
+                    try { audio.currentTime = 0; } catch (e) { }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
-            try { titleEl.textContent = item.title || ''; } catch (e) {}
-            try { artistEl.textContent = item.artist || ''; } catch (e) {}
-            try { if (art && item.art) art.src = item.art; } catch (e) {}
+            try { titleEl.textContent = item.title || ''; } catch (e) { }
+            try { artistEl.textContent = item.artist || ''; } catch (e) { }
+            try { if (art && item.art) art.src = item.art; } catch (e) { }
 
             if (autoplay) {
-                audio.play().catch(() => {});
+                audio.play().catch(() => { });
             }
         }
 
@@ -1764,7 +1740,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btn.addEventListener('click', () => {
             if (audio.paused) {
-                audio.play().catch(() => {});
+                audio.play().catch(() => { });
                 btn.innerHTML = pauseSVG;
             } else {
                 audio.pause();
@@ -1784,5 +1760,5 @@ document.addEventListener('DOMContentLoaded', () => {
         audio.addEventListener('play', () => { btn.innerHTML = pauseSVG; });
         audio.addEventListener('pause', () => { btn.innerHTML = playSVG; });
         audio.addEventListener('ended', () => { loadTrack(currentIndex + 1, true); });
-    } catch (e) {}
+    } catch (e) { }
 });
