@@ -978,11 +978,19 @@ body::before {
         display: none !important;
     }
 
-    /* Ensure body doesn't scroll horizontally */
+    /* Ensure body doesn't scroll horizontally or vertically on mobile (app-like feel) */
     body {
-        overflow-x: hidden;
+        overflow: hidden;
         width: 100%;
         max-width: 100vw;
+        position: fixed;
+        /* Stronger lock for mobile safari behaviors */
+        height: 100%;
+    }
+
+    /* Adjust terminal container padding so content isn't hidden behind the 120px sheet */
+    .terminal-container {
+        padding-bottom: 140px !important;
     }
 }
 
